@@ -17,6 +17,17 @@
 /.next/
 /out/
 
+# android/capacitor generated outputs
+android/.gradle/
+android/build/
+android/app/build/
+android/app/src/main/assets/
+android/local.properties
+android/keystore.properties
+android/upload-keystore.jks
+*.jks
+*.keystore
+
 # production
 /build
 

@@ -1,36 +1,106 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# TekPanel
 
-## Getting Started
+TekPanel, Android telefona gelen seçili müşteri mesaj bildirimlerini tek ekranda gösteren local-first inbox uygulamasıdır.
 
-First, run the development server:
+Uygulama WhatsApp, WhatsApp Business, Instagram, TikTok, X / Twitter, Facebook / Messenger ve SMS gibi kanallardan gelen görünen bildirimleri cihaz içinde toplar. Amaç işletmecinin müşteri mesajlarını bildirim kalabalığında kaybetmemesidir.
+
+## Ne Yapar
+
+- Seçili mesaj kanallarından gelen görünen bildirimleri panele düşürür.
+- Kanal filtresiyle sadece istenen kanalın mesajlarını gösterir.
+- WhatsApp ve WhatsApp Business gibi kanalları ayrı açıp kapatmaya izin verir.
+- Mesajı `Okundu` yaparak panelden kaldırır.
+- Ekranı tek aksiyonla temizler.
+- Verileri cihaz içinde `localStorage` ile tutar.
+- Google Play release için signed `.aab` üretir.
+
+## Ne Yapmaz
+
+TekPanel şunları yapmaz:
+
+- WhatsApp veya Instagram hesabına giriş yapmaz.
+- Eski sohbet geçmişi çekmez.
+- Medya, ses, fotoğraf veya video çekmez.
+- Otomatik cevap göndermez.
+- Scraping yapmaz.
+- OCR kullanmaz.
+- Accessibility ile ekran okumaz veya tıklamaz.
+- Bildirimleri silmez, kaydırmaz veya bildirim paneline müdahale etmez.
+- Server, auth, cloud veya sosyal medya token'ı kullanmaz.
+- Mağaza sürümünde internet izni istemez.
+
+## Geliştirme
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Kontroller
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run lint
+npm run build
+npm run test:web
+npm run test:native
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Android Debug Build
 
-## Learn More
+```bash
+npm run mobile:sync
+npm run android:build
+```
 
-To learn more about Next.js, take a look at the following resources:
+APK yolu:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```text
+android/app/build/outputs/apk/debug/app-debug.apk
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Google Play Release Build
 
-## Deploy on Vercel
+Play Store için signed Android App Bundle üret:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm run android:release
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Çıktı:
+
+```text
+android/app/build/outputs/bundle/release/app-release.aab
+```
+
+İlk release çalıştırmasında şu iki dosya lokal olarak oluşturulur:
+
+```text
+android/upload-keystore.jks
+android/keystore.properties
+```
+
+Bu iki dosya `.gitignore` içindedir. Güvenli bir yere yedeklenmelidir. Kaybedilirse aynı Play Store uygulamasını güncellemek zorlaşabilir veya imkansız olabilir.
+
+Version ayarlamak için:
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/android-release-bundle.ps1 -VersionCode 2 -VersionName "1.0.1"
+```
+
+## Play Store Dokümanları
+
+Play Console için hazır taslaklar:
+
+```text
+docs/play-store/privacy-policy.md
+docs/play-store/store-listing-tr.md
+docs/play-store/data-safety-tr.md
+docs/play-store/release-checklist.md
+```
+
+Privacy policy dosyasındaki `DESTEK_EPOSTASI_BURAYA` alanı yayın öncesi gerçek destek e-postasıyla değiştirilmelidir.
+
+## Android Bildirim Erişimi
+
+Kullanıcı uygulamada `Kanalları ayarla` panelinden bildirim erişimi ayarına gidebilir. Android ayarlarında TekPanel için notification access açılmadan otomatik bildirim yakalama çalışmaz.
+
+Bildirim içeriği gizliyse, ilgili sohbet ekrandayken Android bildirim üretmiyorsa veya üretici bildirimleri kısıtlıyorsa TekPanel'e kayıt düşmeyebilir.
