@@ -21,7 +21,7 @@ Default direction: utilitarian mobile inbox with subtle editorial polish.
 
 This means:
 
-- compact header
+- compact headerbun
 - readable message rows
 - platform-colored source badges
 - quiet background

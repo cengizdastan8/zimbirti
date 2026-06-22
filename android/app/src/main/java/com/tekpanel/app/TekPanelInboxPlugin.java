@@ -112,9 +112,6 @@ public class TekPanelInboxPlugin extends Plugin {
     }
 
     private ComponentName listenerComponent(Context context) {
-        return new ComponentName(
-                context.getPackageName(),
-                context.getPackageName() + ".TekPanelNotificationListener"
-        );
+        return new ComponentName(context, TekPanelNotificationListener.class);
     }
 }

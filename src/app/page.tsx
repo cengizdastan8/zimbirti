@@ -99,6 +99,7 @@ type SourceTheme = {
   borderClass: string;
   chipClass: string;
   cardClass: string;
+  accentClass: string;
   label: string;
   icon?: SimpleIcon;
 };
@@ -107,56 +108,63 @@ const sourceThemes: Record<SourceApp, SourceTheme> = {
   WhatsApp: {
     badgeClass: "bg-[#25D366] text-white",
     borderClass: "border-emerald-300",
-    chipClass: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-    cardClass: "bg-white ring-emerald-100",
+    chipClass: "bg-emerald-900/40 text-emerald-300 ring-emerald-700",
+    cardClass: "bg-[var(--card)] ring-emerald-900",
+    accentClass: "bg-[#25D366]",
     label: "WA",
     icon: siWhatsapp,
   },
   Instagram: {
     badgeClass: "bg-gradient-to-br from-[#F58529] via-[#DD2A7B] to-[#8134AF] text-white",
     borderClass: "border-fuchsia-300",
-    chipClass: "bg-fuchsia-50 text-fuchsia-700 ring-fuchsia-200",
-    cardClass: "bg-white ring-fuchsia-100",
+    chipClass: "bg-fuchsia-900/40 text-fuchsia-300 ring-fuchsia-700",
+    cardClass: "bg-[var(--card)] ring-fuchsia-900",
+    accentClass: "bg-gradient-to-b from-[#F58529] via-[#DD2A7B] to-[#8134AF]",
     label: "IG",
     icon: siInstagram,
   },
   Facebook: {
     badgeClass: "bg-[#1877F2] text-white",
     borderClass: "border-blue-300",
-    chipClass: "bg-blue-50 text-blue-700 ring-blue-200",
-    cardClass: "bg-white ring-blue-100",
+    chipClass: "bg-blue-900/40 text-blue-300 ring-blue-700",
+    cardClass: "bg-[var(--card)] ring-blue-900",
+    accentClass: "bg-[#1877F2]",
     label: "FB",
     icon: siFacebook,
   },
   TikTok: {
     badgeClass: "bg-zinc-950 text-white",
     borderClass: "border-cyan-300",
-    chipClass: "bg-cyan-50 text-cyan-800 ring-cyan-200",
-    cardClass: "bg-white ring-cyan-100",
+    chipClass: "bg-cyan-900/40 text-cyan-300 ring-cyan-700",
+    cardClass: "bg-[var(--card)] ring-cyan-900",
+    accentClass: "bg-zinc-950",
     label: "TT",
     icon: siTiktok,
   },
   "X / Twitter": {
     badgeClass: "bg-zinc-950 text-white",
     borderClass: "border-zinc-300",
-    chipClass: "bg-zinc-100 text-zinc-700 ring-zinc-200",
-    cardClass: "bg-white ring-zinc-200",
+    chipClass: "bg-zinc-800 text-zinc-300 ring-zinc-600",
+    cardClass: "bg-[var(--card)] ring-zinc-700",
+    accentClass: "bg-zinc-950",
     label: "X",
     icon: siX,
   },
   SMS: {
     badgeClass: "bg-[#1A73E8] text-white",
     borderClass: "border-amber-300",
-    chipClass: "bg-amber-50 text-amber-800 ring-amber-200",
-    cardClass: "bg-white ring-amber-100",
+    chipClass: "bg-amber-900/40 text-amber-300 ring-amber-700",
+    cardClass: "bg-[var(--card)] ring-amber-900",
+    accentClass: "bg-[#1A73E8]",
     label: "SMS",
     icon: siGooglemessages,
   },
   Diger: {
     badgeClass: "bg-stone-700 text-white",
     borderClass: "border-stone-300",
-    chipClass: "bg-stone-100 text-stone-700 ring-stone-200",
-    cardClass: "bg-white ring-stone-200",
+    chipClass: "bg-stone-800 text-stone-300 ring-stone-600",
+    cardClass: "bg-[var(--card)] ring-stone-700",
+    accentClass: "bg-stone-700",
     label: "DG",
   },
 };
@@ -577,10 +585,11 @@ export default function Home() {
       }
     }
   }, []);
-  const enableAllChannels = useCallback(() => {
+  const toggleAllChannels = useCallback(() => {
+    const shouldEnable = !channels.every((channel) => channel.enabled);
     const nextChannels = channels.map((channel) => ({
       ...channel,
-      enabled: true,
+      enabled: shouldEnable,
     }));
     void saveChannelSettings(nextChannels);
   }, [channels, saveChannelSettings]);
@@ -712,21 +721,237 @@ export default function Home() {
     });
   }, [selectedChannel, sortedMessages]);
 
+  const todayStamp = useMemo(
+    () =>
+      new Intl.DateTimeFormat("tr-TR", {
+        day: "2-digit",
+        month: "long",
+        weekday: "long",
+      }).format(new Date()),
+    [],
+  );
+
+  const showAccessGate = isNative && isNotificationAccessEnabled === false;
+
   return (
-    <main className="min-h-screen bg-[#f2f0ea] text-[#171411]">
-      <section className="mx-auto flex min-h-screen w-full max-w-[390px] flex-col overflow-hidden bg-[#f7f6f2] sm:max-w-[430px]">
-        <header className="sticky top-0 z-10 border-b border-[#ded8cd] bg-[#f7f6f2]/95 px-4 pb-3 pt-4 backdrop-blur">
+    <main className="min-h-screen bg-[var(--paper)] text-[var(--ink-primary)]">
+      {showAccessGate ? (
+        <section className="fixed inset-0 z-50 mx-auto flex w-full max-w-[390px] flex-col overflow-y-auto bg-[var(--paper)] px-6 pb-8 pt-16 sm:max-w-[430px]">
+          <div className="flex flex-1 flex-col">
+            <span className="mono text-[11px] uppercase tracking-[0.22em] text-[var(--ink-muted)]">
+              TekPanel
+            </span>
+            <h1 className="mt-5 text-[30px] font-black leading-[1.08] tracking-[-0.04em] text-[var(--ink-primary)]">
+              Tüm müşteri
+              <br />
+              mesajların tek
+              <br />
+              ekranda.
+            </h1>
+            <p className="mt-4 text-[15px] leading-[1.55] text-[var(--ink-secondary)]">
+              WhatsApp, Instagram, Messenger ve SMS bildirimlerini burada
+              toplayabilmemiz için tek bir izin vermen yeterli. Sonrası otomatik.
+            </p>
+
+            <ol className="mt-8 space-y-4">
+              <li className="flex items-start gap-3">
+                <span className="mono mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--accent-bg)] text-[12px] font-black text-[var(--accent-fg)]">
+                  1
+                </span>
+                <span className="text-[14px] leading-[1.5] text-[var(--ink-secondary)]">
+                  Aşağıdaki butona bas. Telefonun bildirim izni ekranı açılacak.
+                </span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="mono mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--accent-bg)] text-[12px] font-black text-[var(--accent-fg)]">
+                  2
+                </span>
+                <span className="text-[14px] leading-[1.5] text-[var(--ink-secondary)]">
+                  Listeden{" "}
+                  <span className="font-black text-[var(--ink-primary)]">
+                    TekPanel
+                  </span>{" "}
+                  satırını bul, yanındaki anahtarı aç.
+                </span>
+              </li>
+              <li className="flex items-start gap-3">
+                <span className="mono mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[var(--accent-bg)] text-[12px] font-black text-[var(--accent-fg)]">
+                  3
+                </span>
+                <span className="text-[14px] leading-[1.5] text-[var(--ink-secondary)]">
+                  Çıkan onayda{" "}
+                  <span className="font-black text-[var(--ink-primary)]">
+                    İzin ver
+                  </span>{" "}
+                  de ve geri dön. Hepsi bu.
+                </span>
+              </li>
+            </ol>
+          </div>
+
+          <div className="mt-8">
+            <button
+              type="button"
+              onClick={() => void openNotificationAccess()}
+              className="flex h-14 w-full items-center justify-center rounded-2xl bg-[var(--accent-bg)] text-[16px] font-black tracking-[-0.01em] text-[var(--accent-fg)] transition active:scale-[0.98]"
+            >
+              İzin ekranını aç
+            </button>
+            <button
+              type="button"
+              onClick={() => void refreshNotificationAccess()}
+              className="mt-3 flex h-11 w-full items-center justify-center rounded-2xl text-[13px] font-bold text-[var(--ink-muted)] transition active:scale-[0.98]"
+            >
+              İzni verdim, kontrol et
+            </button>
+            <p className="mt-4 text-center text-[12px] leading-[1.5] text-[var(--ink-faint)]">
+              TekPanel mesajlarını yalnızca senin telefonunda tutar, hiçbir
+              sunucuya göndermez.
+            </p>
+          </div>
+        </section>
+      ) : null}
+      {isChannelPanelOpen ? (
+        <section className="ledger-panel-in fixed inset-0 z-40 mx-auto flex w-full max-w-[390px] flex-col overflow-y-auto bg-[var(--accent-bg)] px-4 pb-6 pt-4 text-[var(--accent-fg)] sm:max-w-[430px]">
+          <div className="flex items-center justify-between gap-3 border-b border-black/10 pb-3">
+            <div className="min-w-0">
+              <span className="mono text-[10px] font-bold uppercase tracking-[0.22em] text-black/55">
+                TekPanel
+              </span>
+              <h2 className="mt-1 text-[21px] font-black tracking-[-0.035em]">
+                Kanalları ayarla
+              </h2>
+              <p className="mt-1 text-[13px] font-semibold text-black/60">
+                {enabledChannelCount} kanal açık
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsChannelPanelOpen(false)}
+              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[var(--accent-fg)] text-[28px] font-black leading-none text-[var(--accent-bg)] transition active:scale-[0.95]"
+              aria-label="Kapat"
+            >
+              ×
+            </button>
+          </div>
+
+          {channels.length === 0 ? (
+            <p className="py-5 text-[14px] leading-6 text-black/65">
+              Bu telefonda mesaj kanalı bulunamadı.
+            </p>
+          ) : (
+            <div className="mt-4 overflow-hidden rounded-2xl border border-black/10 bg-white">
+              <button
+                type="button"
+                onClick={() => void toggleAllChannels()}
+                className="flex min-h-[56px] w-full items-center justify-between gap-3 border-b border-black/10 bg-black/[0.04] px-4 py-3 text-left transition active:scale-[0.99]"
+                aria-label="Tümünü aç"
+                aria-pressed={areAllChannelsEnabled}
+              >
+                <span className="min-w-0">
+                  <span className="block text-[15px] font-black text-black">
+                    Tümünü aç
+                  </span>
+                  <span className="mt-0.5 block text-[12px] font-semibold text-black/55">
+                    Tek dokunuşla tüm kaynakları seç
+                  </span>
+                </span>
+                <span
+                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border-2 text-[15px] font-black leading-none transition ${
+                    areAllChannelsEnabled
+                      ? "border-black bg-black text-white"
+                      : "border-black/25 bg-transparent text-transparent"
+                  }`}
+                >
+                  ✓
+                </span>
+              </button>
+
+              {channels.map((channel) => {
+                const theme = sourceThemeFor(channel.sourceApp);
+
+                return (
+                  <button
+                    key={channel.packageName}
+                    type="button"
+                    onClick={() => toggleChannel(channel.packageName)}
+                    className="flex min-h-[60px] w-full items-center justify-between gap-3 border-b border-black/10 bg-white px-4 py-3 text-left text-black transition last:border-b-0 active:bg-black/[0.04]"
+                    aria-pressed={channel.enabled}
+                  >
+                    <span className="flex min-w-0 items-center gap-3">
+                      <span
+                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-[10px] font-black tracking-[0.12em] ${theme.badgeClass}`}
+                      >
+                        <BrandIcon
+                          className="h-5 w-5"
+                          icon={brandIconFor(channel.sourceApp, channel.packageName)}
+                          label={theme.label}
+                        />
+                      </span>
+                      <span className="block min-w-0">
+                        <span className="block truncate text-[15px] font-bold">
+                          {channel.label}
+                        </span>
+                        <span className="mt-0.5 block text-[12px] font-semibold text-black/50">
+                          {channel.enabled ? "Açık" : "Kapalı"}
+                        </span>
+                      </span>
+                    </span>
+                    <span
+                      className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border-2 text-[15px] font-black leading-none transition ${
+                        channel.enabled
+                          ? "border-black bg-black text-white"
+                          : "border-black/25 bg-transparent text-transparent"
+                      }`}
+                    >
+                      ✓
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {isNative && !isNotificationAccessEnabled ? (
+            <button
+              type="button"
+              onClick={() => void openNotificationAccess()}
+              className="mt-4 block w-full rounded-2xl bg-[var(--accent-fg)] px-4 py-4 text-left text-[var(--accent-bg)] transition active:scale-[0.99]"
+            >
+              <span className="block text-[15px] font-black">
+                Bu ayarı açman gerekiyor
+              </span>
+              <span className="mt-1 block text-[13px] leading-5 text-white/75">
+                Dokun, açılan listede TekPanel&apos;e bildirim erişimi izni ver.
+              </span>
+            </button>
+          ) : null}
+        </section>
+      ) : null}
+      <section className="paper-grain mx-auto flex min-h-screen w-full max-w-[390px] flex-col overflow-hidden sm:max-w-[430px]">
+        <header className="sticky top-0 z-10  bg-[var(--surface)]/92 px-4 pb-3 pt-4 backdrop-blur-md">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[#7a7065]">
+
+              <span className="mono text-[10px] font-bold uppercase tracking-[0.22em] text-[var(--ink-muted)]">
                 TekPanel
-              </p>
-              <h1 className="mt-1 text-[22px] font-black leading-7 tracking-[-0.04em]">
+              </span>
+              <h1 className="mt-1 text-[22px] font-black leading-7 tracking-[-0.04em] text-[var(--ink-primary)]">
                 Gelen mesajlar
               </h1>
+              <p className="mono mt-1 text-[12px] font-semibold uppercase tracking-[0.12em] text-[var(--ink-secondary)]">
+                {todayStamp}
+              </p>
             </div>
-            <div className="flex h-9 min-w-9 items-center justify-center rounded-full bg-[#171411] px-3 text-sm font-black text-white shadow-sm">
-              {visibleMessages.length === 0 ? "0" : visibleMessages.length}
+            <div className="flex flex-col items-center">
+              <div className="flex h-11 min-w-11 items-center justify-center rounded-2xl bg-[var(--accent-bg)] px-3 text-[18px] font-black text-[var(--accent-fg)]">
+                <span className="mono">
+                  {visibleMessages.length === 0 ? "0" : visibleMessages.length}
+                </span>
+              </div>
+              <span className="mt-1 text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--ink-muted)]">
+                mesaj
+              </span>
             </div>
           </div>
 
@@ -734,16 +959,25 @@ export default function Home() {
             <button
               type="button"
               onClick={() => setIsChannelPanelOpen((current) => !current)}
-              className="h-10 rounded-full border border-[#d7d0c4] bg-white px-3 text-center text-[13px] font-black text-[#171411] shadow-sm transition active:scale-[0.98]"
+              className={`flex h-11 items-center justify-center gap-2 rounded-2xl border px-3 text-center text-[13px] font-bold transition active:scale-[0.98] ${
+                isChannelPanelOpen
+                  ? "border-[var(--accent-bg)] bg-[var(--accent-bg)] text-[var(--accent-fg)]"
+                  : "border-[var(--border-strong)] bg-[var(--card)] text-[var(--ink-primary)]"
+              }`}
               aria-expanded={isChannelPanelOpen}
               aria-label="Kanalları ayarla"
             >
+              <span
+                className={`inline-block h-1.5 w-1.5 rounded-full ${
+                  isChannelPanelOpen ? "bg-[var(--accent-fg)]" : "bg-[var(--accent-bg)]"
+                }`}
+              />
               Kanalları ayarla
             </button>
             <button
               type="button"
               onClick={() => void clearScreen()}
-              className="h-10 rounded-full border border-[#d7d0c4] bg-white px-2 text-center text-[12px] font-black leading-none text-[#171411] shadow-sm transition active:scale-[0.98]"
+              className="flex h-11 items-center justify-center rounded-2xl  bg-[var(--card)] px-2 text-center text-[12px] font-bold leading-none text-[var(--ink-primary)] transition active:scale-[0.98]"
               aria-label="Ekranı tertemiz yap"
             >
               Ekranı tertemiz yap
@@ -754,18 +988,18 @@ export default function Home() {
             <button
               type="button"
               onClick={() => setSelectedChannelPackage("all")}
-              className={`inline-flex h-9 shrink-0 items-center gap-2 rounded-full border py-1.5 pl-2 pr-3 text-[12px] font-black shadow-sm transition active:scale-[0.98] ${
+              className={`inline-flex h-9 shrink-0 items-center gap-2 rounded-full border py-1.5 pl-2 pr-3 text-[12px] font-bold transition active:scale-[0.98] ${
                 selectedChannelPackage === "all"
-                  ? "border-[#171411] bg-[#171411] text-white"
-                  : "border-[#ded8cd] bg-white text-[#2f2a25]"
+                  ? "border-[var(--accent-bg)] bg-[var(--accent-bg)] text-[var(--accent-fg)]"
+                  : "border-[var(--border-strong)] bg-[var(--card)] text-[var(--ink-secondary)]"
               }`}
               aria-pressed={effectiveSelectedChannelPackage === "all"}
             >
               <span
-                className={`flex h-6 min-w-6 items-center justify-center rounded-full text-[10px] font-black ${
+                className={`flex h-6 min-w-6 items-center justify-center rounded-full px-1 text-[10px] font-black tabular-nums ${
                   effectiveSelectedChannelPackage === "all"
-                    ? "bg-white text-[#171411]"
-                    : "bg-[#171411] text-white"
+                    ? "bg-[var(--accent-fg)] text-[var(--accent-bg)]"
+                    : "bg-[var(--accent-bg)] text-[var(--accent-fg)]"
                 }`}
               >
                 {sortedMessages.length}
@@ -773,7 +1007,7 @@ export default function Home() {
               Tüm mesajlar
             </button>
             {enabledChannels.length === 0 ? (
-              <span className="rounded-full border border-[#ded8cd] bg-white px-3 py-2 text-xs font-bold text-[#7a7065]">
+              <span className="inline-flex h-9 items-center rounded-full  bg-[var(--card)] px-3 text-xs font-semibold text-[var(--ink-muted)]">
                 Kanal kapalı
               </span>
             ) : (
@@ -788,10 +1022,10 @@ export default function Home() {
                     key={channel.packageName}
                     type="button"
                     onClick={() => setSelectedChannelPackage(channel.packageName)}
-                    className={`inline-flex h-9 shrink-0 items-center gap-2 rounded-full border py-1.5 pl-1.5 pr-3 text-[12px] font-black shadow-sm transition active:scale-[0.98] ${
+                    className={`inline-flex h-9 shrink-0 items-center gap-2 rounded-full border py-1.5 pl-1.5 pr-3 text-[12px] font-bold transition active:scale-[0.98] ${
                       isSelected
-                        ? "border-[#171411] bg-[#171411] text-white"
-                        : "border-[#ded8cd] bg-white text-[#2f2a25]"
+                        ? "border-[var(--accent-bg)] bg-[var(--accent-bg)] text-[var(--accent-fg)]"
+                        : "border-[var(--border-strong)] bg-[var(--card)] text-[var(--ink-secondary)]"
                     }`}
                     aria-pressed={isSelected}
                   >
@@ -811,7 +1045,7 @@ export default function Home() {
             )}
           </div>
 
-          <p className="mt-2 text-[13px] font-semibold text-[#7a7065]">
+          <p className="mt-2.5 text-[13px] font-semibold text-[var(--ink-muted)]">
             {messages.length === 0
               ? "Mesaj bildirimi bekleniyor."
               : selectedChannel
@@ -821,71 +1055,48 @@ export default function Home() {
         </header>
 
         {isChannelPanelOpen ? (
-          <section className="mx-4 mt-3 rounded-[24px] border border-[#ded8cd] bg-white p-3 shadow-[0_18px_42px_rgba(29,24,18,0.1)]">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h2 className="text-[17px] font-black tracking-[-0.03em]">
-                  Kanalları ayarla
-                </h2>
-                <p className="mt-1 max-w-56 text-xs leading-5 text-[#7a7065]">
-                  Sadece açık kanallardan gelen bildirimler ekrana düşer.
-                </p>
-              </div>
-              <div className="flex shrink-0 flex-col gap-2">
-                <button
-                  type="button"
-                  onClick={enableAllChannels}
-                  disabled={areAllChannelsEnabled}
-                  className="h-9 rounded-full bg-[#171411] px-3 text-[11px] font-black uppercase tracking-[0.08em] text-white disabled:bg-[#ded8cd] disabled:text-[#8d8174]"
-                >
-                  Tümünü aç
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsChannelPanelOpen(false)}
-                  className="h-9 rounded-full border border-[#ded8cd] bg-[#f7f6f2] px-3 text-[11px] font-black uppercase tracking-[0.08em]"
-                >
-                  Menüyü gizle
-                </button>
-              </div>
+          <section className="ledger-panel-in mx-4 mt-3 overflow-hidden rounded-3xl bg-[var(--card)] shadow-[0_12px_32px_rgba(0,0,0,0.35)]">
+            <div className="flex items-center justify-between gap-3 border-b border-[var(--border-soft)] px-4 py-3">
+              <h2 className="text-[17px] font-black tracking-[-0.03em] text-[var(--ink-primary)]">
+                Kanallar
+              </h2>
+              <button
+                type="button"
+                onClick={() => setIsChannelPanelOpen(false)}
+                className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--subtle)] text-[18px] font-black leading-none text-[var(--ink-primary)] transition active:scale-[0.95]"
+                aria-label="Kapat"
+              >
+                ×
+              </button>
             </div>
 
-            {isNative ? (
-              <div className="mt-3 rounded-[18px] border border-[#eee9df] bg-[#fbfaf7] p-3">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-[13px] font-black">Bildirim erişimi</p>
-                    <p className="mt-1 text-xs leading-5 text-[#7a7065]">
-                      TekPanel sadece seçtiğin kanalların görünen bildirim
-                      metnini cihazda tutar.
-                    </p>
-                  </div>
-                  <span
-                    className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.12em] ${
-                      isNotificationAccessEnabled
-                        ? "bg-emerald-100 text-emerald-800"
-                        : "bg-[#171411] text-white"
-                    }`}
-                  >
-                    {isNotificationAccessEnabled ? "Açık" : "Kapalı"}
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => void openNotificationAccess()}
-                  className="mt-3 h-9 w-full rounded-full border border-[#ded8cd] bg-white px-3 text-[12px] font-black text-[#171411] shadow-sm transition active:scale-[0.98]"
-                >
-                  Bildirim erişimini aç
-                </button>
-              </div>
-            ) : null}
-
             {channels.length === 0 ? (
-              <p className="mt-4 text-sm leading-6 text-[#73685d]">
-                Bu telefonda desteklenen mesaj kanalı bulunamadı.
+              <p className="px-4 py-4 text-[14px] leading-6 text-[var(--ink-secondary)]">
+                Bu telefonda mesaj kanalı bulunamadı.
               </p>
             ) : (
-              <div className="mt-4 divide-y divide-[#eee9df] overflow-hidden rounded-[18px] border border-[#eee9df]">
+              <div>
+                <button
+                  type="button"
+                  onClick={() => void toggleAllChannels()}
+                  className="flex min-h-[52px] w-full items-center justify-between gap-3 border-b border-[var(--border-soft)] bg-[var(--subtle)] px-4 py-3 text-left transition active:scale-[0.99]"
+                  aria-label="Tümünü seç"
+                  aria-pressed={areAllChannelsEnabled}
+                >
+                  <span className="text-[14px] font-black text-[var(--ink-primary)]">
+                    Tümü
+                  </span>
+                  <span
+                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border-2 text-[15px] font-black leading-none transition ${
+                      areAllChannelsEnabled
+                        ? "border-[var(--accent-bg)] bg-[var(--accent-bg)] text-[var(--accent-fg)]"
+                        : "border-[var(--border-strong)] bg-transparent text-transparent"
+                    }`}
+                  >
+                    ✓
+                  </span>
+                </button>
+
                 {channels.map((channel) => {
                   const theme = sourceThemeFor(channel.sourceApp);
 
@@ -894,13 +1105,12 @@ export default function Home() {
                       key={channel.packageName}
                       type="button"
                       onClick={() => toggleChannel(channel.packageName)}
-                      className={`flex min-h-14 w-full items-center justify-between gap-3 bg-white px-3 py-3 text-left transition active:bg-[#f7f6f2] ${
-                        channel.enabled ? "" : "opacity-45"
-                      }`}
+                      className="flex min-h-[56px] w-full items-center justify-between gap-3 border-b border-[var(--border-soft)] bg-[var(--card)] px-4 py-3 text-left transition active:bg-[var(--subtle)]"
+                      aria-pressed={channel.enabled}
                     >
                       <span className="flex min-w-0 items-center gap-3">
                         <span
-                          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[10px] font-black tracking-[0.12em] ${theme.badgeClass}`}
+                          className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-[10px] font-black tracking-[0.12em] ${theme.badgeClass}`}
                         >
                           <BrandIcon
                             className="h-5 w-5"
@@ -908,51 +1118,81 @@ export default function Home() {
                             label={theme.label}
                           />
                         </span>
-                        <span className="min-w-0">
-                          <span className="block truncate text-[14px] font-black">
-                            {channel.label}
-                          </span>
+                        <span className="block truncate text-[15px] font-bold text-[var(--ink-primary)]">
+                          {channel.label}
                         </span>
                       </span>
                       <span
-                        className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.12em] ${
+                        className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border-2 text-[15px] font-black leading-none transition ${
                           channel.enabled
-                            ? "bg-[#171411] text-white"
-                            : "bg-[#eee9df] text-[#8d8174]"
+                            ? "border-[var(--accent-bg)] bg-[var(--accent-bg)] text-[var(--accent-fg)]"
+                            : "border-[var(--border-strong)] bg-transparent text-transparent"
                         }`}
                       >
-                        {channel.enabled ? "Açık" : "Kapalı"}
+                        ✓
                       </span>
                     </button>
                   );
                 })}
               </div>
             )}
+
+            {isNative && !isNotificationAccessEnabled ? (
+              <button
+                type="button"
+                onClick={() => void openNotificationAccess()}
+                className="block w-full bg-[var(--accent-bg)] px-4 py-4 text-left transition active:scale-[0.99]"
+              >
+                <span className="block text-[15px] font-black text-[var(--accent-fg)]">
+                  Bu ayarı açman gerekiyor
+                </span>
+                <span className="mt-1 block text-[13px] leading-5 text-[var(--accent-fg)]/80">
+                  Dokun, açılan listede TekPanel’e bildirim erişimi izni ver.
+                </span>
+              </button>
+            ) : null}
           </section>
         ) : null}
 
         {visibleMessages.length === 0 ? (
-          <div className="flex flex-1 px-3 py-3">
-            <section className="h-fit w-full rounded-[22px] border border-[#ded8cd] bg-white px-4 py-4 shadow-sm">
-              <p className="text-[16px] font-black tracking-[-0.025em]">
-                {messages.length === 0 ? "Bildirim bekleniyor" : "Bu kanalda mesaj yok"}
-              </p>
-              <p className="mt-1 text-sm leading-6 text-[#7a7065]">
-                {messages.length === 0
-                  ? "WhatsApp, Instagram veya SMS bildirimi gelince burada görünecek."
-                  : "Tüm mesajları görmek için üstten Tüm mesajlar'a dokun."}
-              </p>
-              <div className="mt-4 h-px bg-[#eee9df]" />
-              <p className="mt-3 text-[12px] font-bold text-[#9a8e80]">
-                {messages.length === 0
-                  ? "Ekran temiz."
-                  : `${sortedMessages.length} toplam mesaj var.`}
-              </p>
+          <div className="flex flex-1 px-4 py-4">
+            <section className="h-fit w-full overflow-hidden rounded-3xl  bg-[var(--card)]">
+              <div className="flex items-center justify-between border-b border-[var(--border-soft)] bg-[var(--subtle)] px-4 py-2">
+                <span className="mono text-[10px] uppercase tracking-[0.18em] text-[var(--ink-muted)]">
+                  Kayıt defteri
+                </span>
+                <span className="mono text-[10px] tabular-nums tracking-[0.12em] text-[var(--ink-faint)]">
+                  00 kayıt
+                </span>
+              </div>
+              <div className="px-4 py-5">
+                <p className="text-[16px] font-black tracking-[-0.025em] text-[var(--ink-primary)]">
+                  {messages.length === 0 ? "Bildirim bekleniyor" : "Bu kanalda mesaj yok"}
+                </p>
+                <p className="mt-1.5 text-sm leading-6 text-[var(--ink-muted)]">
+                  {messages.length === 0
+                    ? "WhatsApp, Instagram veya SMS bildirimi gelince burada görünecek."
+                    : "Tüm mesajları görmek için üstten Tüm mesajlar'a dokun."}
+                </p>
+                <p className="mono mt-4 text-[11px] tracking-[0.04em] text-[var(--ink-faint)]">
+                  {messages.length === 0
+                    ? "// ekran temiz."
+                    : `// ${sortedMessages.length} toplam mesaj var.`}
+                </p>
+              </div>
             </section>
           </div>
         ) : (
-          <div className="flex-1 overflow-y-auto px-3 py-3">
-            <div className="overflow-hidden rounded-[26px] border border-[#ded8cd] bg-white shadow-sm">
+          <div className="flex-1 overflow-y-auto px-4 py-4">
+            <div className="overflow-hidden rounded-3xl  bg-[var(--card)]">
+              <div className="flex items-center justify-between border-b border-[var(--border-soft)] bg-[var(--subtle)] px-4 py-2">
+                <span className="mono text-[10px] uppercase tracking-[0.18em] text-[var(--ink-muted)]">
+                  Kayıt defteri
+                </span>
+                <span className="mono text-[10px] tabular-nums tracking-[0.12em] text-[var(--ink-faint)]">
+                  {String(visibleMessages.length).padStart(2, "0")} kayıt
+                </span>
+              </div>
               {visibleMessages.map((message, index) => {
                 const theme = sourceThemeFor(message.sourceApp);
                 const icon = brandIconFor(message.sourceApp, message.sourcePackage);
@@ -960,57 +1200,66 @@ export default function Home() {
                 return (
                   <article
                     key={message.id}
-                    className={`relative px-3.5 py-3.5 ${
-                      index > 0 ? "border-t border-[#eee9df]" : ""
-                    }`}
+                    className="ledger-row-in relative flex gap-0 border-t border-[var(--border-soft)]"
                   >
-                    <div className="flex items-start gap-3">
-                      <div
-                        className={`mt-0.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-[15px] text-[10px] font-black tracking-[0.12em] shadow-sm ${theme.badgeClass}`}
-                        aria-hidden="true"
-                      >
-                        <BrandIcon
-                          className="h-[22px] w-[22px]"
-                          icon={icon}
-                          label={theme.label}
-                        />
+                    {/* Platform accent rail — the ledger signature */}
+                    <span
+                      className={`w-[3px] shrink-0 ${theme.accentClass}`}
+                      aria-hidden="true"
+                    />
+
+                    <div className="flex min-w-0 flex-1 items-start gap-3 px-3.5 py-3.5">
+                      <div className="flex shrink-0 flex-col items-center gap-1.5">
+                        <div
+                          className={`flex h-11 w-11 items-center justify-center rounded-2xl text-[10px] font-black tracking-[0.12em] ${theme.badgeClass}`}
+                          aria-hidden="true"
+                        >
+                          <BrandIcon
+                            className="h-[22px] w-[22px]"
+                            icon={icon}
+                            label={theme.label}
+                          />
+                        </div>
+                        <span className="mono text-[9px] tabular-nums tracking-[0.1em] text-[var(--ink-faint)]">
+                          {String(index + 1).padStart(2, "0")}
+                        </span>
                       </div>
 
                       <div className="min-w-0 flex-1">
                         <div className="flex min-w-0 items-start justify-between gap-3">
                           <div className="min-w-0">
-                            <h2 className="truncate text-[16px] font-black leading-5 tracking-[-0.025em]">
+                            <h2 className="truncate text-[16px] font-black leading-5 tracking-[-0.025em] text-[var(--ink-primary)]">
                               {message.senderName}
                             </h2>
-                            <div className="mt-1 flex min-w-0 items-center gap-2">
+                            <div className="mt-1.5 flex min-w-0 items-center gap-2">
                               <span
-                                className={`inline-flex shrink-0 rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.1em] ring-1 ${theme.chipClass}`}
+                                className={`inline-flex shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-black uppercase tracking-[0.1em] ring-1 ${theme.chipClass}`}
                               >
                                 {sourceDisplayLabel(message.sourceApp)}
                               </span>
                             </div>
                           </div>
 
-                          <div className="shrink-0 text-right">
-                            <time className="block text-[11px] font-bold text-[#8d8174]">
+                          <div className="flex shrink-0 flex-col items-end gap-2">
+                            <time className="mono block text-[10px] tabular-nums tracking-[0.04em] text-[var(--ink-faint)]">
                               {formatDateTime(message.receivedAt)}
                             </time>
                             <button
                               type="button"
                               onClick={() => markAsRead(message.id)}
-                              className="mt-2 inline-flex h-5 items-center rounded-full border border-[#ded8cd] bg-[#f7f6f2] px-1.5 text-[9px] font-bold leading-none text-[#171411] transition active:scale-[0.95]"
+                              className="inline-flex h-8 items-center gap-1.5 rounded-full  bg-[var(--subtle)] px-3 text-[11px] font-bold leading-none text-[var(--ink-primary)] transition active:scale-[0.95]"
                               aria-label={`${message.senderName} mesajını okundu olarak işaretle`}
                               title="Okundu"
                             >
+                              <span className="text-[12px] leading-none">✓</span>
                               Okundu
                             </button>
                           </div>
                         </div>
 
-                        <p className="mt-2 whitespace-pre-wrap break-words text-[14px] leading-5 text-[#3d352d]">
+                        <p className="mt-2 whitespace-pre-wrap break-words text-[14px] leading-[1.5] text-[var(--ink-secondary)]">
                           {message.messageText}
                         </p>
-
                       </div>
                     </div>
                   </article>

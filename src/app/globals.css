@@ -1,8 +1,24 @@
 @import "tailwindcss";
 
 :root {
-  --background: #eee9df;
-  --foreground: #1c1712;
+  --background: #0a0a0a;
+  --foreground: #f0ece4;
+
+  --paper: #0a0a0a;
+  --surface: #111111;
+  --card: #181818;
+  --subtle: #222222;
+
+  --ink-primary: #f0ece4;
+  --ink-secondary: #d4cfc5;
+  --ink-muted: #a8a39a;
+  --ink-faint: #807b72;
+
+  --border-strong: #333330;
+  --border-soft: #242420;
+
+  --accent-bg: #f0ece4;
+  --accent-fg: #0a0a0a;
 }
 
 @theme inline {
@@ -17,6 +33,16 @@ body {
   color: var(--foreground);
   font-family: var(--font-geist-sans), "Segoe UI", sans-serif;
   text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+.paper-grain {
+  background-color: var(--surface);
+}
+
+.mono {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-feature-settings: "tnum" 1, "zero" 1;
 }
 
 button,
@@ -32,7 +58,7 @@ button {
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(28, 23, 18, 0.24) transparent;
+  scrollbar-color: rgba(240, 236, 228, 0.1) transparent;
 }
 
 .no-scrollbar {
@@ -41,4 +67,41 @@ button {
 
 .no-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+@keyframes ledger-row-in {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes ledger-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.995);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.ledger-row-in {
+  animation: ledger-row-in 0.28s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+.ledger-panel-in {
+  animation: ledger-panel-in 0.2s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ledger-row-in,
+  .ledger-panel-in {
+    animation: none;
+  }
 }

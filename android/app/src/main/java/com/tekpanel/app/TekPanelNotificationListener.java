@@ -50,19 +50,6 @@ public class TekPanelNotificationListener extends NotificationListenerService {
 
         TekPanelCaptureStore.recordSeen(this, packageName, title, messageText);
 
-        String sourceApp = TekPanelChannelStore.sourceAppForPackage(packageName);
-        if (sourceApp.isEmpty()) {
-            TekPanelCaptureStore.recordRejected(this, packageName, title, messageText, "Paket allowlist disinda");
-            Log.d(TAG, "rejected outside allowlist package=" + packageName);
-            return;
-        }
-
-        if (!TekPanelChannelStore.isPackageAllowed(this, packageName)) {
-            TekPanelCaptureStore.recordRejected(this, packageName, title, messageText, "Kanal kullanici tarafindan kapali");
-            Log.d(TAG, "rejected disabled channel package=" + packageName);
-            return;
-        }
-
         if (title.trim().isEmpty() && messageText.trim().isEmpty()) {
             TekPanelCaptureStore.recordRejected(this, packageName, title, messageText, "Baslik ve metin bos");
             Log.d(TAG, "rejected empty package=" + packageName);
@@ -72,6 +59,22 @@ public class TekPanelNotificationListener extends NotificationListenerService {
         if (isLowSignalNotification(title, messageText)) {
             TekPanelCaptureStore.recordRejected(this, packageName, title, messageText, "Mesaj metni teknik veya anlamsiz");
             Log.d(TAG, "rejected low signal package=" + packageName + " title=" + title);
+            return;
+        }
+
+        // Icerikli bir bildirim geldi: uygulamayi kanal listesine dusur ki
+        // kullanici isterse acabilsin. Bilinen kanallar zaten listede.
+        TekPanelChannelStore.recordDiscoveredPackage(
+            this,
+            packageName,
+            TekPanelChannelStore.resolveAppLabel(this, packageName)
+        );
+
+        String sourceApp = TekPanelChannelStore.sourceAppForPackage(packageName);
+
+        if (!TekPanelChannelStore.isPackageAllowed(this, packageName)) {
+            TekPanelCaptureStore.recordRejected(this, packageName, title, messageText, "Kanal kullanici tarafindan kapali");
+            Log.d(TAG, "rejected disabled channel package=" + packageName);
             return;
         }
 
