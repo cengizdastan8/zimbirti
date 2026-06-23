@@ -52,7 +52,7 @@ function Find-JavaHome {
   if (-not ((Test-Path $javaExe) -and (Test-Path $keytoolExe) -and (Test-Path $awtDll))) {
     Remove-Item -LiteralPath $jdkRoot -Recurse -Force -ErrorAction SilentlyContinue
     New-Item -ItemType Directory -Force -Path $jdkRoot | Out-Null
-    Invoke-WebRequest `
+    Invoke-WebRequest -UseBasicParsing `
       -Uri "https://api.adoptium.net/v3/binary/latest/21/ga/windows/x64/jdk/hotspot/normal/eclipse" `
       -OutFile $archive
     Expand-Archive -LiteralPath $archive -DestinationPath $jdkRoot -Force
@@ -79,12 +79,12 @@ function Ensure-AndroidSdk {
   $sdkManager = Join-Path $cmdlineToolsBin "sdkmanager.bat"
 
   if (-not (Test-Path $sdkManager)) {
-    $zip = Join-Path $env:TEMP "tekpanel-commandlinetools.zip"
-    $extract = Join-Path $env:TEMP "tekpanel-commandlinetools"
+    $zip = Join-Path $env:TEMP "tekpanel-commandlinetools2.zip"
+    $extract = Join-Path $env:TEMP "tekpanel-commandlinetools2"
     Remove-Item -LiteralPath $extract -Recurse -Force -ErrorAction SilentlyContinue
     New-Item -ItemType Directory -Force -Path $extract | Out-Null
     New-Item -ItemType Directory -Force -Path (Join-Path $sdkRoot "cmdline-tools") | Out-Null
-    Invoke-WebRequest `
+    Invoke-WebRequest -UseBasicParsing `
       -Uri "https://dl.google.com/android/repository/commandlinetools-win-11076708_latest.zip" `
       -OutFile $zip
     Expand-Archive -LiteralPath $zip -DestinationPath $extract -Force

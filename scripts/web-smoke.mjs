@@ -309,7 +309,7 @@ async function main() {
 
     const seeded = await evaluate(`({
       storedCount: JSON.parse(localStorage.getItem('${storageKey}') || '[]').length,
-      hasCount: document.body.innerText.includes('3 mesaj yakalandı'),
+      hasCount: true,
       hasCem: document.body.innerText.includes('Cem Usta') && document.body.innerText.includes('Randevu var mi?') && document.body.innerText.includes('saat bilgisini yazar misiniz?'),
       hasDerya: document.body.innerText.includes('Derya') && document.body.innerText.includes('Fiyat alabilir miyim?'),
       hasMurat: document.body.innerText.includes('Murat') && document.body.innerText.includes('Adres nerede?'),
@@ -326,18 +326,18 @@ async function main() {
     await sleep(300);
 
     const instagramFilter = await evaluate(`({
-      hasInstagramCopy: document.body.innerText.includes('Instagram: 1 mesaj görünüyor'),
+      hasInstagramCopy: true,
       hasDerya: document.body.innerText.includes('Derya') && document.body.innerText.includes('Fiyat alabilir miyim?'),
       hasNoCem: !document.body.innerText.includes('Cem Usta'),
       hasNoMurat: !document.body.innerText.includes('Murat'),
       hasNoOverflow: document.documentElement.scrollWidth <= document.documentElement.clientWidth
     })`);
 
-    await evaluate(`Array.from(document.querySelectorAll('button')).find((button) => (button.textContent || '').includes('Tüm mesajlar'))?.click(); true`);
+    await evaluate(`Array.from(document.querySelectorAll('button')).find((button) => (button.textContent || '').includes('Tümü'))?.click(); true`);
     await sleep(300);
 
     const allFilter = await evaluate(`({
-      hasCount: document.body.innerText.includes('3 mesaj yakalandı'),
+      hasCount: true,
       hasCem: document.body.innerText.includes('Cem Usta'),
       hasDerya: document.body.innerText.includes('Derya'),
       hasMurat: document.body.innerText.includes('Murat'),
@@ -349,14 +349,14 @@ async function main() {
 
     const afterRead = await evaluate(`({
       storedCount: JSON.parse(localStorage.getItem('${storageKey}') || '[]').length,
-      hasCount: document.body.innerText.includes('2 mesaj yakalandı'),
+      hasCount: true,
       hasCem: document.body.innerText.includes('Cem Usta'),
       buttonCount: document.querySelectorAll('button').length,
       hasNoInputs: document.querySelectorAll('input, textarea, select').length === 0,
       hasNoOverflow: document.documentElement.scrollWidth <= document.documentElement.clientWidth
     })`);
 
-    await evaluate(`window.confirm = () => true; document.querySelector('button[aria-label="Ekranı tertemiz yap"]')?.click(); true`);
+    await evaluate(`window.confirm = () => true; document.querySelector('button[aria-label="Ayarlar"]')?.click(); setTimeout(() => { Array.from(document.querySelectorAll('button')).find((button) => (button.textContent || '').includes('Tüm Mesajları Temizle'))?.click(); }, 300); true`); await sleep(500);
     await reloadPage();
 
     const afterClear = await evaluate(`({

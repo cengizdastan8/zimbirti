@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">TekPanel</string>
-    <string name="title_activity_main">TekPanel</string>
-    <string name="package_name">com.tekpanel.app</string>
-    <string name="custom_url_scheme">com.tekpanel.app</string>
+    <string name="app_name">OOO</string>
+    <string name="title_activity_main">OOO</string>
+    <string name="package_name">com.singlepanel</string>
+    <string name="custom_url_scheme">com.singlepanel</string>
 </resources>

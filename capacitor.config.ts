@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
-  appId: "com.tekpanel.app",
-  appName: "A",
+  appId: "com.singlepanel",
+  appName: "SinglePanel",
   webDir: "out",
 };
 

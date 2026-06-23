@@ -1,24 +1,45 @@
 @import "tailwindcss";
 
 :root {
-  --background: #0a0a0a;
-  --foreground: #f0ece4;
+  --background: #FDFCFB;
+  --foreground: #111110;
 
-  --paper: #0a0a0a;
-  --surface: #111111;
-  --card: #181818;
-  --subtle: #222222;
+  --paper: #FDFCFB;
+  --surface: #F5F4F1;
+  --card: #FFFFFF;
+  --subtle: #F0EFEB;
 
-  --ink-primary: #f0ece4;
-  --ink-secondary: #d4cfc5;
-  --ink-muted: #a8a39a;
-  --ink-faint: #807b72;
+  --ink-primary: #111110;
+  --ink-secondary: #5F5E5B;
+  --ink-muted: #8F8D8A;
+  --ink-faint: #B5B3AE;
 
-  --border-strong: #333330;
-  --border-soft: #242420;
+  --border-strong: #E5E3DC;
+  --border-soft: #F0EFEB;
 
-  --accent-bg: #f0ece4;
-  --accent-fg: #0a0a0a;
+  --accent-bg: #111110;
+  --accent-fg: #FDFCFB;
+}
+
+.dark {
+  --background: #000000;
+  --foreground: #FDFCFB;
+
+  --paper: #000000;
+  --surface: #0A0A0A;
+  --card: #0F0F0F;
+  --subtle: #1C1C1A;
+
+  --ink-primary: #FDFCFB;
+  --ink-secondary: #A3A19B;
+  --ink-muted: #6B6965;
+  --ink-faint: #3D3C3A;
+
+  --border-strong: #2E2D2A;
+  --border-soft: #1C1C1A;
+
+  --accent-bg: #FDFCFB;
+  --accent-fg: #000000;
 }
 
 @theme inline {
