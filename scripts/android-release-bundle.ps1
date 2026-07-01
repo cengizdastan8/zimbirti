@@ -80,6 +80,17 @@ function Find-JavaHome {
 
 function Ensure-AndroidSdk {
   $sdkRoot = if ($env:ANDROID_HOME) { $env:ANDROID_HOME } else { Join-Path $env:TEMP "tekpanel-android-sdk" }
+  $platformTools = Join-Path $sdkRoot "platform-tools\adb.exe"
+  $androidJar = Join-Path $sdkRoot "platforms\android-36\android.jar"
+  $buildTool = Join-Path $sdkRoot "build-tools\36.0.0\aapt.exe"
+
+  $env:ANDROID_HOME = $sdkRoot
+  $env:ANDROID_SDK_ROOT = $sdkRoot
+
+  if ((Test-Path $platformTools) -and (Test-Path $androidJar) -and (Test-Path $buildTool)) {
+    return $sdkRoot
+  }
+
   $cmdlineToolsBin = Join-Path $sdkRoot "cmdline-tools\latest\bin"
   $sdkManager = Join-Path $cmdlineToolsBin "sdkmanager.bat"
 
@@ -95,9 +106,6 @@ function Ensure-AndroidSdk {
     Expand-Archive -LiteralPath $zip -DestinationPath $extract -Force
     Move-Item -LiteralPath (Join-Path $extract "cmdline-tools") -Destination (Join-Path $sdkRoot "cmdline-tools\latest") -Force
   }
-
-  $env:ANDROID_HOME = $sdkRoot
-  $env:ANDROID_SDK_ROOT = $sdkRoot
 
   $yes = "y`n" * 20
   $yes | & $sdkManager --sdk_root=$sdkRoot --licenses | Out-Host

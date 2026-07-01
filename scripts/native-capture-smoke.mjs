@@ -58,9 +58,11 @@ const checks = {
     listener.includes("notificationFingerprint") &&
     listener.includes("hasFingerprint") &&
     listener.includes("rememberFingerprint"),
-  rejectsOutsideAllowlist:
-    listener.includes("Paket allowlist disinda") &&
-    listener.includes("recordRejected"),
+  discoversUnknownAppsDisabledByDefault:
+    listener.includes("TekPanelChannelStore.recordDiscoveredPackage") &&
+    channelStore.includes("recordDiscoveredPackage") &&
+    channelStore.includes('return safePackage.isEmpty() ? "" : "Diger"') &&
+    listener.includes("Kanal kullanici tarafindan kapali"),
   textLines:
     listener.includes("Notification.EXTRA_TEXT_LINES") &&
     listener.includes("textLinesToString"),
@@ -70,10 +72,11 @@ const checks = {
     store.includes("lastRejectReason") &&
     store.includes("queueCount") &&
     store.includes("lastImportAt"),
-  queueOnlyAccepted:
+  queueOnlyAllowedAndNonEmpty:
     store.includes("KEY_MESSAGES") &&
+    store.includes("text.isEmpty()") &&
     listener.includes("TekPanelCaptureStore.add") &&
-    listener.includes("sourceApp.isEmpty()"),
+    listener.includes("TekPanelChannelStore.isPackageAllowed"),
   activeImportOnConnect:
     listener.includes("onListenerConnected") &&
     listener.includes("getActiveNotifications") &&
