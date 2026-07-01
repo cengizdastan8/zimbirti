@@ -18,7 +18,7 @@ android {
     namespace = "com.tekpanel.app"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "com.singlepanel"
+        applicationId "com.tekpanel.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode tekpanelVersionCode
