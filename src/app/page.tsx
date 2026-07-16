@@ -2644,10 +2644,6 @@ export default function Home() {
 
 
       <section className="singlepanel-screen relative z-10 mx-auto flex min-h-[100dvh] w-full max-w-[430px] flex-col overflow-hidden text-white">
-        <div className="neon-arc neon-arc-pink" aria-hidden="true" />
-        <div className="neon-arc neon-arc-green" aria-hidden="true" />
-        <div className="neon-arc neon-arc-blue" aria-hidden="true" />
-
         <header className="relative z-20 px-5 pb-4 pt-8">
           <div className="flex items-center justify-between">
             <div className="min-w-0">

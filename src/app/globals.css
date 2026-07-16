@@ -140,38 +140,6 @@ body {
   border-radius: 22px;
 }
 
-.neon-arc {
-  position: absolute;
-  pointer-events: none;
-  width: 420px;
-  height: 420px;
-  border-radius: 50%;
-  opacity: 0.78;
-  filter: drop-shadow(0 0 18px currentColor);
-}
-
-.neon-arc-pink {
-  left: -350px;
-  top: 240px;
-  color: #ff2e55;
-  border: 3px solid currentColor;
-}
-
-.neon-arc-green {
-  right: -350px;
-  top: 250px;
-  color: #22c55e;
-  border: 3px solid currentColor;
-}
-
-.neon-arc-blue {
-  left: 48%;
-  bottom: -330px;
-  color: #1687ff;
-  border: 3px solid currentColor;
-  transform: translateX(-50%);
-}
-
 .empty-preview {
   mask-image: linear-gradient(to bottom, black 72%, transparent);
 }
