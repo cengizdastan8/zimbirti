@@ -1,4 +1,4 @@
-package com.tekpanel.app;
+package com.karpuztost.makinesi;
 
 import android.content.ComponentName;
 import android.content.Context;
@@ -46,6 +46,14 @@ public class TekPanelInboxPlugin extends Plugin {
     }
 
     @PluginMethod
+    public void scanInstalledChannels(PluginCall call) {
+        JSONArray channels = TekPanelChannelStore.scanInstalledChannels(getContext());
+        JSObject result = new JSObject();
+        result.put("channels", channels);
+        call.resolve(result);
+    }
+
+    @PluginMethod
     public void saveEnabledChannels(PluginCall call) {
         JSArray packages = call.getArray("packages", new JSArray());
         JSONArray channels = TekPanelChannelStore.saveEnabledPackages(getContext(), packages);
@@ -56,9 +64,18 @@ public class TekPanelInboxPlugin extends Plugin {
 
     @PluginMethod
     public void openNotificationAccessSettings(PluginCall call) {
-        Intent intent = new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS);
+        ComponentName listener = listenerComponent(getContext());
+        Intent intent = new Intent(Settings.ACTION_NOTIFICATION_LISTENER_DETAIL_SETTINGS);
+        intent.putExtra(Settings.EXTRA_NOTIFICATION_LISTENER_COMPONENT_NAME, listener);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        getContext().startActivity(intent);
+
+        try {
+            getContext().startActivity(intent);
+        } catch (Exception exception) {
+            Intent fallback = new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS);
+            fallback.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            getContext().startActivity(fallback);
+        }
         call.resolve();
     }
 

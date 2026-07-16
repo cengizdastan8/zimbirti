@@ -1,16 +1,25 @@
-package com.tekpanel.app;
+package com.karpuztost.makinesi;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import com.getcapacitor.JSArray;
+import java.util.List;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.util.Base64;
+import java.io.ByteArrayOutputStream;
 
 public final class TekPanelChannelStore {
     private static final String PREFS_NAME = "tekpanel_channel_store";
@@ -111,7 +120,7 @@ public final class TekPanelChannelStore {
                 continue;
             }
             seen.add(channel.packageName);
-            putChannel(channels, channel.label, channel.sourceApp, channel.packageName,
+            putChannel(context, channels, channel.label, channel.sourceApp, channel.packageName,
                 enabled.contains(channel.packageName));
         }
 
@@ -125,10 +134,46 @@ public final class TekPanelChannelStore {
             }
             seen.add(pkg);
             String label = discovered.optString(pkg, prettyName(pkg));
-            putChannel(channels, label, "Diger", pkg, enabled.contains(pkg));
+            putChannel(context, channels, label, "Diger", pkg, enabled.contains(pkg));
         }
 
         return channels;
+    }
+
+    public static synchronized JSONArray scanInstalledChannels(Context context) {
+        PackageManager packageManager = context.getPackageManager();
+        Intent launcherIntent = new Intent(Intent.ACTION_MAIN);
+        launcherIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+        List<ResolveInfo> apps = packageManager.queryIntentActivities(launcherIntent, 0);
+
+        JSONObject discovered = readDiscovered(context);
+        for (ResolveInfo app : apps) {
+            if (app == null || app.activityInfo == null) {
+                continue;
+            }
+
+            String packageName = safe(app.activityInfo.packageName);
+            if (packageName.isEmpty()
+                    || packageName.equals(context.getPackageName())
+                    || isKnownPackage(packageName)
+                    || discovered.has(packageName)) {
+                continue;
+            }
+
+            CharSequence label = app.loadLabel(packageManager);
+            try {
+                discovered.put(
+                        packageName,
+                        label == null || label.length() == 0
+                                ? prettyName(packageName)
+                                : label.toString()
+                );
+            } catch (JSONException ignored) {
+            }
+        }
+
+        prefs(context).edit().putString(KEY_DISCOVERED, discovered.toString()).apply();
+        return readChannels(context);
     }
 
     public static synchronized JSONArray saveEnabledPackages(Context context, JSArray packages) {
@@ -156,6 +201,7 @@ public final class TekPanelChannelStore {
     }
 
     private static void putChannel(
+        Context context,
         JSONArray channels,
         String label,
         String sourceApp,
@@ -169,9 +215,50 @@ public final class TekPanelChannelStore {
             item.put("packageName", packageName);
             item.put("installed", true);
             item.put("enabled", enabled);
+
+            String iconBase64 = getBase64Icon(context, packageName);
+            if (iconBase64 != null) {
+                item.put("iconBase64", iconBase64);
+            }
+
             channels.put(item);
         } catch (JSONException ignored) {
         }
+    }
+
+    private static String getBase64Icon(Context context, String packageName) {
+        try {
+            PackageManager pm = context.getPackageManager();
+            Drawable icon = pm.getApplicationIcon(packageName);
+            Bitmap bitmap;
+
+            if (icon instanceof BitmapDrawable) {
+                bitmap = ((BitmapDrawable) icon).getBitmap();
+            } else {
+                int width = Math.max(icon.getIntrinsicWidth(), 1);
+                int height = Math.max(icon.getIntrinsicHeight(), 1);
+                if (width > 128) width = 128;
+                if (height > 128) height = 128;
+
+                bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+                Canvas canvas = new Canvas(bitmap);
+                icon.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+                icon.draw(canvas);
+            }
+
+            if (bitmap != null) {
+                if (bitmap.getWidth() > 128 || bitmap.getHeight() > 128) {
+                    bitmap = Bitmap.createScaledBitmap(bitmap, 128, 128, true);
+                }
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, baos);
+                byte[] b = baos.toByteArray();
+                return Base64.encodeToString(b, Base64.NO_WRAP);
+            }
+        } catch (Exception e) {
+            // Log or ignore
+        }
+        return null;
     }
 
     private static boolean isKnownPackage(String packageName) {

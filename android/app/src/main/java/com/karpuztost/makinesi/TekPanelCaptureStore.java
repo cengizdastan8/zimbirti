@@ -1,4 +1,4 @@
-package com.tekpanel.app;
+package com.karpuztost.makinesi;
 
 import android.content.Context;
 import android.content.SharedPreferences;

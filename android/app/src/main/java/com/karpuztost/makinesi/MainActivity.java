@@ -1,4 +1,4 @@
-package com.tekpanel.app;
+package com.karpuztost.makinesi;
 
 import android.content.Intent;
 import android.net.Uri;
@@ -9,6 +9,7 @@ public class MainActivity extends BridgeActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         registerPlugin(TekPanelInboxPlugin.class);
+        registerPlugin(TekPanelBillingPlugin.class);
         super.onCreate(savedInstanceState);
         handleShareIntent(getIntent());
     }

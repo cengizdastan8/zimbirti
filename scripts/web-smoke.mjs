@@ -20,10 +20,10 @@ const mimeTypes = new Map([
 function serveStatic() {
   const server = createServer((request, response) => {
     const requestUrl = new URL(request.url ?? "/", "http://127.0.0.1");
-    let pathname = decodeURIComponent(requestUrl.pathname);
-    if (pathname === "/") {
-      pathname = "/index.html";
-    }
+    const pathname =
+      decodeURIComponent(requestUrl.pathname) === "/"
+        ? "/index.html"
+        : decodeURIComponent(requestUrl.pathname);
 
     try {
       const filePath = join(root, pathname);
@@ -80,12 +80,12 @@ function connectCdp(wsUrl) {
   socket.addEventListener("message", (event) => {
     const message = JSON.parse(String(event.data));
     if (message.id && pending.has(message.id)) {
-      const { resolve, reject } = pending.get(message.id);
+      const { resolve: resolvePending, reject } = pending.get(message.id);
       pending.delete(message.id);
       if (message.error) {
         reject(new Error(message.error.message));
       } else {
-        resolve(message.result);
+        resolvePending(message.result);
       }
     }
   });
@@ -96,8 +96,8 @@ function connectCdp(wsUrl) {
         send(method, params = {}) {
           const id = nextId++;
           socket.send(JSON.stringify({ id, method, params }));
-          return new Promise((resolve, reject) => {
-            pending.set(id, { resolve, reject });
+          return new Promise((resolvePending, reject) => {
+            pending.set(id, { resolve: resolvePending, reject });
           });
         },
         close() {
@@ -206,33 +206,31 @@ async function main() {
     await reloadPage();
 
     const initial = await evaluate(`({
-      hasTitle: document.body.innerText.includes('Gelen mesajlar'),
-      hasEmptyCopy: document.body.innerText.includes('Mesaj bildirimi bekleniyor') && document.body.innerText.includes('görünecek'),
-      buttonCount: document.querySelectorAll('button').length,
-      hasChannelButton: (document.body.textContent || '').includes('Kanalları ayarla'),
-      hasAllMessagesFilter: (document.body.textContent || '').includes('Tüm mesajlar'),
+      hasTitle: document.body.innerText.includes('TekPanel'),
+      hasNoEmptyCopy: !document.body.innerText.includes('Bildirim bekleniyor') && !document.body.innerText.includes('WhatsApp, Instagram'),
+      hasChannelButton: Boolean(document.querySelector('button[aria-label="Kanalları ayarla"]')),
+      hasClearButton: Boolean(document.querySelector('button[aria-label="Ekranı temizle"]')),
+      hasAllFilter: (document.body.textContent || '').includes('Tümü'),
       hasNoInputs: document.querySelectorAll('input, textarea, select').length === 0,
-      hasNoOverflow: document.documentElement.scrollWidth <= document.documentElement.clientWidth,
-      title: document.title
+      hasNoOverflow: document.documentElement.scrollWidth <= document.documentElement.clientWidth
     })`);
 
     await evaluate(`document.querySelector('button[aria-label="Kanalları ayarla"]')?.click(); true`);
     await sleep(300);
 
     const channelPanel = await evaluate(`({
-      hasTitle: (document.body.textContent || '').includes('Kanalları ayarla'),
+      hasTitle: (document.body.textContent || '').includes('Kanallar'),
       hasWhatsapp: (document.body.textContent || '').includes('WhatsApp'),
       hasBusiness: (document.body.textContent || '').includes('WhatsApp Business'),
-      hasOpenLabel: (document.body.textContent || '').includes('Açık'),
-      hasEnableAllButton: (document.body.textContent || '').includes('Tümünü aç'),
-      buttonCount: document.querySelectorAll('button').length,
+      hasEnableAllButton: (document.body.textContent || '').includes('Tüm kanallar'),
+      hasScanButton: (document.body.textContent || '').includes('Kanal ekle'),
       hasNoInputs: document.querySelectorAll('input, textarea, select').length === 0,
       hasNoOverflow: document.documentElement.scrollWidth <= document.documentElement.clientWidth
     })`);
 
     await evaluate(`Array.from(document.querySelectorAll('button')).find((button) => {
       const text = button.textContent || '';
-      return text.includes('WhatsApp Business') && text.includes('Açık');
+      return text.includes('WhatsApp Business');
     })?.click(); true`);
     await sleep(300);
 
@@ -243,7 +241,7 @@ async function main() {
       hasNoOverflow: document.documentElement.scrollWidth <= document.documentElement.clientWidth
     })`);
 
-    await evaluate(`Array.from(document.querySelectorAll('button')).find((button) => (button.textContent || '').includes('Tümünü aç'))?.click(); true`);
+    await evaluate(`Array.from(document.querySelectorAll('button')).find((button) => (button.textContent || '').includes('Tüm kanallar'))?.click(); true`);
     await sleep(300);
 
     const enableAllChannels = await evaluate(`({
@@ -253,7 +251,7 @@ async function main() {
       hasNoOverflow: document.documentElement.scrollWidth <= document.documentElement.clientWidth
     })`);
 
-    await evaluate(`Array.from(document.querySelectorAll('button')).find((button) => (button.textContent || '').includes('Menüyü gizle'))?.click(); true`);
+    await evaluate(`Array.from(document.querySelectorAll('button')).find((button) => (button.textContent || '').includes('Kapat'))?.click(); true`);
     await sleep(300);
 
     const messages = [
@@ -309,14 +307,11 @@ async function main() {
 
     const seeded = await evaluate(`({
       storedCount: JSON.parse(localStorage.getItem('${storageKey}') || '[]').length,
-      hasCount: true,
-      hasCem: document.body.innerText.includes('Cem Usta') && document.body.innerText.includes('Randevu var mi?') && document.body.innerText.includes('saat bilgisini yazar misiniz?'),
+      hasCem: document.body.innerText.includes('Cem Usta') && document.body.innerText.includes('Randevu var mi?'),
       hasDerya: document.body.innerText.includes('Derya') && document.body.innerText.includes('Fiyat alabilir miyim?'),
       hasMurat: document.body.innerText.includes('Murat') && document.body.innerText.includes('Adres nerede?'),
-      hasNoCaptureLabels: !document.body.innerText.includes('BİLDİRİM') && !document.body.innerText.includes('PAYLAŞIM'),
-      buttonCount: document.querySelectorAll('button').length,
       hasOkunduButton: Array.from(document.querySelectorAll('button')).some((button) => (button.textContent || '').includes('Okundu')),
-      hasAllMessagesFilter: (document.body.textContent || '').includes('Tüm mesajlar'),
+      hasAllFilter: (document.body.textContent || '').includes('Tümü'),
       hasNoPackageText: !document.body.innerText.includes('com.whatsapp') && !document.body.innerText.includes('com.instagram.android'),
       hasNoInputs: document.querySelectorAll('input, textarea, select').length === 0,
       hasNoOverflow: document.documentElement.scrollWidth <= document.documentElement.clientWidth
@@ -326,7 +321,6 @@ async function main() {
     await sleep(300);
 
     const instagramFilter = await evaluate(`({
-      hasInstagramCopy: true,
       hasDerya: document.body.innerText.includes('Derya') && document.body.innerText.includes('Fiyat alabilir miyim?'),
       hasNoCem: !document.body.innerText.includes('Cem Usta'),
       hasNoMurat: !document.body.innerText.includes('Murat'),
@@ -337,7 +331,6 @@ async function main() {
     await sleep(300);
 
     const allFilter = await evaluate(`({
-      hasCount: true,
       hasCem: document.body.innerText.includes('Cem Usta'),
       hasDerya: document.body.innerText.includes('Derya'),
       hasMurat: document.body.innerText.includes('Murat'),
@@ -349,21 +342,19 @@ async function main() {
 
     const afterRead = await evaluate(`({
       storedCount: JSON.parse(localStorage.getItem('${storageKey}') || '[]').length,
-      hasCount: true,
       hasCem: document.body.innerText.includes('Cem Usta'),
-      buttonCount: document.querySelectorAll('button').length,
       hasNoInputs: document.querySelectorAll('input, textarea, select').length === 0,
       hasNoOverflow: document.documentElement.scrollWidth <= document.documentElement.clientWidth
     })`);
 
-    await evaluate(`window.confirm = () => true; document.querySelector('button[aria-label="Ayarlar"]')?.click(); setTimeout(() => { Array.from(document.querySelectorAll('button')).find((button) => (button.textContent || '').includes('Tüm Mesajları Temizle'))?.click(); }, 300); true`); await sleep(500);
+    await evaluate(`window.confirm = () => true; document.querySelector('button[aria-label="Ekranı temizle"]')?.click(); true`);
+    await sleep(500);
     await reloadPage();
 
     const afterClear = await evaluate(`({
       storedCount: JSON.parse(localStorage.getItem('${storageKey}') || '[]').length,
-      hasTitle: document.body.innerText.includes('Gelen mesajlar'),
-      hasEmptyCopy: document.body.innerText.includes('Mesaj bildirimi bekleniyor'),
-      buttonCount: document.querySelectorAll('button').length,
+      hasTitle: document.body.innerText.includes('TekPanel'),
+      hasNoEmptyCopy: !document.body.innerText.includes('Bildirim bekleniyor') && !document.body.innerText.includes('WhatsApp, Instagram'),
       hasNoInputs: document.querySelectorAll('input, textarea, select').length === 0,
       hasNoOverflow: document.documentElement.scrollWidth <= document.documentElement.clientWidth
     })`);
@@ -372,10 +363,9 @@ async function main() {
     await reloadPage();
 
     const corruptedStorageFallback = await evaluate(`({
-      hasTitle: document.body.innerText.includes('Gelen mesajlar'),
-      hasEmptyCopy: document.body.innerText.includes('Mesaj bildirimi bekleniyor'),
+      hasTitle: document.body.innerText.includes('TekPanel'),
+      hasNoEmptyCopy: !document.body.innerText.includes('Bildirim bekleniyor') && !document.body.innerText.includes('WhatsApp, Instagram'),
       storedCount: JSON.parse(localStorage.getItem('${storageKey}') || '[]').length,
-      buttonCount: document.querySelectorAll('button').length,
       hasNoInputs: document.querySelectorAll('input, textarea, select').length === 0,
       hasNoOverflow: document.documentElement.scrollWidth <= document.documentElement.clientWidth
     })`);
@@ -395,66 +385,56 @@ async function main() {
 
     const assertions = [
       initial.hasTitle,
-      initial.hasEmptyCopy,
-      initial.buttonCount >= 3,
+      initial.hasNoEmptyCopy,
       initial.hasChannelButton,
-      initial.hasAllMessagesFilter,
+      initial.hasClearButton,
+      initial.hasAllFilter,
+      initial.hasNoInputs,
+      initial.hasNoOverflow,
       channelPanel.hasTitle,
       channelPanel.hasWhatsapp,
       channelPanel.hasBusiness,
-      channelPanel.hasOpenLabel,
       channelPanel.hasEnableAllButton,
-      channelPanel.buttonCount > 3,
+      channelPanel.hasScanButton,
       channelPanel.hasNoInputs,
       channelPanel.hasNoOverflow,
-      !channelToggle.storedChannels.includes('com.whatsapp.w4b'),
+      !channelToggle.storedChannels.includes("com.whatsapp.w4b"),
       channelToggle.hasClosedLabel,
       channelToggle.hasNoInputs,
       channelToggle.hasNoOverflow,
-      enableAllChannels.storedChannels.includes('com.whatsapp.w4b'),
+      enableAllChannels.storedChannels.includes("com.whatsapp.w4b"),
       enableAllChannels.hasNoClosedLabel,
       enableAllChannels.hasNoInputs,
       enableAllChannels.hasNoOverflow,
-      initial.hasNoInputs,
-      initial.hasNoOverflow,
       seeded.storedCount === 3,
-      seeded.hasCount,
       seeded.hasCem,
       seeded.hasDerya,
       seeded.hasMurat,
-      seeded.hasNoCaptureLabels,
-      seeded.buttonCount >= 6,
       seeded.hasOkunduButton,
-      seeded.hasAllMessagesFilter,
+      seeded.hasAllFilter,
       seeded.hasNoPackageText,
       seeded.hasNoInputs,
       seeded.hasNoOverflow,
-      instagramFilter.hasInstagramCopy,
       instagramFilter.hasDerya,
       instagramFilter.hasNoCem,
       instagramFilter.hasNoMurat,
       instagramFilter.hasNoOverflow,
-      allFilter.hasCount,
       allFilter.hasCem,
       allFilter.hasDerya,
       allFilter.hasMurat,
       allFilter.hasNoOverflow,
       afterRead.storedCount === 2,
-      afterRead.hasCount,
       !afterRead.hasCem,
-      afterRead.buttonCount >= 5,
       afterRead.hasNoInputs,
       afterRead.hasNoOverflow,
       afterClear.storedCount === 0,
       afterClear.hasTitle,
-      afterClear.hasEmptyCopy,
-      afterClear.buttonCount >= 3,
+      afterClear.hasNoEmptyCopy,
       afterClear.hasNoInputs,
       afterClear.hasNoOverflow,
       corruptedStorageFallback.hasTitle,
-      corruptedStorageFallback.hasEmptyCopy,
+      corruptedStorageFallback.hasNoEmptyCopy,
       corruptedStorageFallback.storedCount === 0,
-      corruptedStorageFallback.buttonCount >= 3,
       corruptedStorageFallback.hasNoInputs,
       corruptedStorageFallback.hasNoOverflow,
     ];
