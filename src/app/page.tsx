@@ -88,6 +88,19 @@ type InboxMessage = {
 
 };
 
+type ActiveTab = "messages" | "contacts" | "settings";
+
+type Conversation = {
+  id: string;
+  sourceApp: SourceApp;
+  sourcePackage?: string;
+  senderName: string;
+  customerId?: string;
+  messages: InboxMessage[];
+  latestMessage: InboxMessage;
+  unreadCount: number;
+};
+
 
 
 type NativeCapturedMessage = {
@@ -1124,6 +1137,46 @@ const sortByNewest = (messages: InboxMessage[]) =>
 
   );
 
+const conversationKeyFor = (message: InboxMessage) => {
+  const base =
+    message.customerId && message.customerId.trim().length > 0
+      ? message.customerId
+      : `${message.sourceApp}:${message.senderName}`;
+
+  return base.trim().toLocaleLowerCase("tr-TR");
+};
+
+const groupMessagesIntoConversations = (messages: InboxMessage[]) => {
+  const grouped = new Map<string, InboxMessage[]>();
+
+  for (const message of messages) {
+    const key = conversationKeyFor(message);
+    grouped.set(key, [...(grouped.get(key) ?? []), message]);
+  }
+
+  return [...grouped.entries()]
+    .map(([id, conversationMessages]) => {
+      const sorted = sortByNewest(conversationMessages);
+      const latestMessage = sorted[0];
+
+      return {
+        id,
+        sourceApp: latestMessage.sourceApp,
+        sourcePackage: latestMessage.sourcePackage,
+        senderName: latestMessage.senderName,
+        customerId: latestMessage.customerId,
+        messages: sorted,
+        latestMessage,
+        unreadCount: sorted.length,
+      } satisfies Conversation;
+    })
+    .sort(
+      (left, right) =>
+        new Date(right.latestMessage.receivedAt).getTime() -
+        new Date(left.latestMessage.receivedAt).getTime(),
+    );
+};
+
 
 
 const formatDateTime = (value: string) => {
@@ -1158,72 +1211,6 @@ const formatDateTime = (value: string) => {
 
 
 
-function useDominantColors(channels: ChannelSetting[]) {
-
-  const [colors, setColors] = useState<Record<string, string>>({});
-
-  const processed = useRef(new Set<string>());
-
-
-
-  useEffect(() => {
-
-    channels.forEach((channel) => {
-
-      if (channel.iconBase64 && !processed.current.has(channel.packageName)) {
-
-        processed.current.add(channel.packageName);
-
-        const img = new Image();
-
-        img.onload = () => {
-
-          const canvas = document.createElement("canvas");
-
-          canvas.width = 1;
-
-          canvas.height = 1;
-
-          const ctx = canvas.getContext("2d");
-
-          if (ctx) {
-
-            ctx.drawImage(img, 0, 0, 1, 1);
-
-            const data = ctx.getImageData(0, 0, 1, 1).data;
-
-            if (data[3] > 0) {
-
-              setColors((prev) => ({
-
-                ...prev,
-
-                [channel.packageName]: `rgb(${data[0]}, ${data[1]}, ${data[2]})`,
-
-              }));
-
-            }
-
-          }
-
-        };
-
-        img.src = `data:image/png;base64,${channel.iconBase64}`;
-
-      }
-
-    });
-
-  }, [channels]);
-
-
-
-  return colors;
-
-}
-
-
-
 export default function Home() {
 
 
@@ -1232,9 +1219,11 @@ export default function Home() {
 
   const [channels, setChannels] = useState<ChannelSetting[]>(fallbackChannels);
 
-  const [isChannelPanelOpen, setIsChannelPanelOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<ActiveTab>("messages");
 
-  const dominantColors = useDominantColors(channels);
+  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+
+  const [isChannelPanelOpen, setIsChannelPanelOpen] = useState(false);
 
   const [selectedChannelPackage, setSelectedChannelPackage] =
 
@@ -1271,6 +1260,9 @@ export default function Home() {
   const hasLoadedStorage = useRef(false);
   const isBillingSheetOpenRef = useRef(false);
   const isChannelPanelOpenRef = useRef(false);
+  const isPermissionPrimerOpenRef = useRef(false);
+  const activeTabRef = useRef<ActiveTab>("messages");
+  const selectedConversationIdRef = useRef<string | null>(null);
   const hasTrackedPermissionGrant = useRef(false);
   const isNative = useMemo(() => Capacitor.isNativePlatform(), []);
 
@@ -1758,46 +1750,6 @@ export default function Home() {
 
 
 
-  const clearScreen = useCallback(async () => {
-
-    const confirmed = window.confirm(
-
-      "Ekranı tertemiz yapmak istediğine emin misin?",
-
-    );
-
-
-
-    if (!confirmed) {
-
-      return;
-
-    }
-
-
-
-    setMessages([]);
-
-    localStorage.removeItem(STORAGE_KEY);
-
-
-
-    if (Capacitor.isNativePlatform()) {
-
-      try {
-
-        await NativeInbox.clearCapturedMessages();
-
-      } catch {
-
-        // Local screen is still cleared even if the native bridge rejects.
-
-      }
-
-    }
-
-  }, []);
-
   const toggleAllChannels = useCallback(() => {
 
     const shouldEnable = !channels.every((channel) => channel.enabled);
@@ -1814,10 +1766,12 @@ export default function Home() {
 
   }, [channels, saveChannelSettings]);
 
-  const markAsRead = useCallback((id: string) => {
-
-    setMessages((current) => current.filter((message) => message.id !== id));
-
+  const markConversationAsRead = useCallback((conversation: Conversation) => {
+    const ids = new Set(conversation.messages.map((message) => message.id));
+    setMessages((current) => current.filter((message) => !ids.has(message.id)));
+    setSelectedConversationId((current) =>
+      current === conversation.id ? null : current,
+    );
   }, []);
 
 
@@ -2004,6 +1958,18 @@ export default function Home() {
 
   }, [isChannelPanelOpen]);
 
+  useEffect(() => {
+    isPermissionPrimerOpenRef.current = isPermissionPrimerOpen;
+  }, [isPermissionPrimerOpen]);
+
+  useEffect(() => {
+    activeTabRef.current = activeTab;
+  }, [activeTab]);
+
+  useEffect(() => {
+    selectedConversationIdRef.current = selectedConversationId;
+  }, [selectedConversationId]);
+
 
 
   useEffect(() => {
@@ -2025,6 +1991,22 @@ export default function Home() {
       } else if (isChannelPanelOpenRef.current) {
 
         setIsChannelPanelOpen(false);
+
+      } else if (isPermissionPrimerOpenRef.current) {
+
+        setIsPermissionPrimerOpen(false);
+
+      } else if (selectedConversationIdRef.current) {
+
+        setSelectedConversationId(null);
+
+      } else if (activeTabRef.current !== "messages") {
+
+        setActiveTab("messages");
+
+      } else {
+
+        void App.exitApp();
 
       }
 
@@ -2087,6 +2069,11 @@ export default function Home() {
 
 
   const sortedMessages = useMemo(() => sortByNewest(messages), [messages]);
+
+  const conversations = useMemo(
+    () => groupMessagesIntoConversations(sortedMessages),
+    [sortedMessages],
+  );
 
   const enabledChannels = useMemo(
 
@@ -2170,27 +2157,20 @@ export default function Home() {
 
   }, [selectedChannel, sortedMessages]);
 
-
-
-  const todayStamp = useMemo(
-
-    () =>
-
-      new Intl.DateTimeFormat("tr-TR", {
-
-        day: "2-digit",
-
-        month: "long",
-
-        weekday: "long",
-
-      }).format(new Date()),
-
-    [],
-
+  const visibleConversations = useMemo(
+    () => groupMessagesIntoConversations(visibleMessages),
+    [visibleMessages],
   );
 
-
+  const selectedConversation = useMemo(
+    () =>
+      selectedConversationId === null
+        ? null
+        : conversations.find(
+            (conversation) => conversation.id === selectedConversationId,
+          ) ?? null,
+    [conversations, selectedConversationId],
+  );
 
   const trialEndsAt =
 
@@ -2215,7 +2195,7 @@ export default function Home() {
 
         <section className="ledger-panel-in fixed inset-0 z-40 mx-auto flex w-full max-w-[430px] flex-col bg-black/40 px-5 pb-6 pt-8 backdrop-blur-[2px]">
 
-          <div className="channel-sheet mt-auto max-h-[88vh] overflow-hidden rounded-[32px] p-4">
+          <div className="channel-sheet mt-auto max-h-[88vh] overflow-hidden rounded-[24px] p-4">
 
             <div className="flex items-start justify-between gap-3 px-1 pb-4">
 
@@ -2223,7 +2203,7 @@ export default function Home() {
 
                 <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--ink-muted)]">SinglePanel</p>
 
-                <h2 className="mt-1 text-[30px] font-black leading-8 tracking-tight text-white">Kanallar</h2>
+                <h2 className="mt-1 text-[26px] font-black leading-8 tracking-tight text-white">Kanallar</h2>
 
                 <p className="mt-2 text-[14px] font-semibold text-[var(--ink-secondary)]">
 
@@ -2273,7 +2253,7 @@ export default function Home() {
 
                     onClick={() => void toggleAllChannels()}
 
-                    className="channel-row flex min-h-[82px] w-full items-center justify-between gap-4 px-4 py-3 text-left transition active:scale-[0.99]"
+                    className="channel-row flex min-h-[70px] w-full items-center justify-between gap-3 px-4 py-3 text-left transition active:scale-[0.99]"
 
                     aria-label="Tüm kanalları değiştir"
 
@@ -2329,7 +2309,7 @@ export default function Home() {
 
                         onClick={() => toggleChannel(channel.packageName)}
 
-                        className="channel-row flex min-h-[88px] w-full items-center justify-between gap-4 px-4 py-3 text-left text-[var(--ink-primary)] transition active:scale-[0.99]"
+                        className="channel-row flex min-h-[74px] w-full items-center justify-between gap-3 px-4 py-3 text-left text-[var(--ink-primary)] transition active:scale-[0.99]"
 
                         aria-pressed={channel.enabled}
 
@@ -2339,7 +2319,7 @@ export default function Home() {
 
                           <span
 
-                            className={`channel-app-icon flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-[10px] font-black tracking-[0.08em] ${
+                            className={`channel-app-icon flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-[10px] font-black tracking-[0.08em] ${
 
                               channel.iconBase64 ? "bg-[var(--card)] text-white" : theme.badgeClass
 
@@ -2349,15 +2329,13 @@ export default function Home() {
 
                             {channel.iconBase64 ? (
 
-                              // eslint-disable-next-line @next/next/no-img-element
-
                               <img
 
                                 src={`data:image/png;base64,${channel.iconBase64}`}
 
                                 alt=""
 
-                                className="h-10 w-10 rounded-xl object-contain"
+                                className="h-8 w-8 rounded-xl object-contain"
 
                               />
 
@@ -2365,7 +2343,7 @@ export default function Home() {
 
                               <BrandIcon
 
-                                className="h-8 w-8"
+                                className="h-6 w-6"
 
                                 icon={brandIconFor(channel.sourceApp, channel.packageName)}
 
@@ -2419,7 +2397,7 @@ export default function Home() {
 
                 onClick={() => void scanInstalledChannels()}
 
-                className="channel-add tap-target flex w-full items-center justify-between px-5 py-3 text-left text-[18px] font-bold leading-7 text-white transition active:scale-[0.99]"
+                className="channel-add tap-target flex w-full items-center justify-between px-5 py-3 text-left text-[16px] font-bold leading-6 text-white transition active:scale-[0.99]"
 
               >
 
@@ -2471,19 +2449,31 @@ export default function Home() {
         <section className="fixed inset-0 z-50 mx-auto flex w-full max-w-[430px] items-end bg-black/70 px-3 pb-3">
           <div className="sheet-up w-full rounded-[var(--radius-panel)] border border-[var(--border-strong)] bg-[var(--surface)] p-4">
             <p className="text-[11px] font-bold uppercase text-[var(--ink-muted)]">
-              Bildirim erisimi
+              Bildirim erişimi
             </p>
             <h2 className="mt-1 text-[20px] font-extrabold text-[var(--ink-primary)]">
-              Mesajlari tek panelde toplar
+              Mesajları tek panelde toplar
             </h2>
             <p className="mt-2 text-[13px] font-medium leading-5 text-[var(--ink-secondary)]">
-              Android bir sonraki ekranda guclu bir uyari gosterecek. Bu normal.
-              Zimbirti, mesaj bildirimlerini panelde gostermek icin bu izni ister.
+              Zimbirti yalnızca seçtiğin uygulamalardan gelen mesaj bildirimlerini
+              bu panelde göstermek için bu izni ister. İşlem telefonunun içinde kalır.
             </p>
-            <p className="mt-2 text-[12px] font-medium leading-5 text-[var(--ink-muted)]">
-              Mesajlar cihazinda islenir. Bu ekrandan devam edince telefonun
-              bildirim erisimi ayari acilir.
-            </p>
+            <div className="mt-4 space-y-2">
+              {[
+                "Açılan Android ekranında Zimbirti uygulamasını bul.",
+                "Anahtarı aç ve Android uyarısında izin ver.",
+                "Yaklaşık birkaç saniye bekle, sonra geri dön.",
+              ].map((step, index) => (
+                <div key={step} className="flex gap-3 rounded-[14px] bg-[var(--subtle)] p-3">
+                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-white text-[12px] font-black text-[#111318]">
+                    {index + 1}
+                  </span>
+                  <p className="text-[13px] font-semibold leading-5 text-[var(--ink-primary)]">
+                    {step}
+                  </p>
+                </div>
+              ))}
+            </div>
             <div className="mt-4 grid grid-cols-2 gap-2">
               <button
                 type="button"
@@ -2666,37 +2656,39 @@ export default function Home() {
         <div className="neon-arc neon-arc-green" aria-hidden="true" />
         <div className="neon-arc neon-arc-blue" aria-hidden="true" />
 
-                <header className="relative z-20 px-5 pb-4 pt-8">
+        <header className="relative z-20 px-5 pb-4 pt-8">
           <div className="flex items-center justify-between">
             <div className="min-w-0">
-              <h1 className="text-[34px] font-bold tracking-tight text-white">
-                Unified Inbox
+              <h1 className="text-[30px] font-bold tracking-tight text-white">
+                {activeTab === "messages"
+                  ? "Mesajlar"
+                  : activeTab === "contacts"
+                    ? "Kişiler"
+                    : "Ayarlar"}
               </h1>
             </div>
-            <div className="flex gap-4 text-white">
-              <button className="tap-target transition active:scale-95" aria-label="Arama">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-              </button>
+            <div className="flex gap-3 text-white">
               <button
                 className="tap-target transition active:scale-95"
                 onClick={() => setIsChannelPanelOpen((current) => !current)}
-                aria-label="Filtrele"
+                aria-label="Kanalları ayarla"
               >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
               </button>
             </div>
           </div>
 
-          <div className="no-scrollbar mt-6 flex gap-3 overflow-x-auto pb-2">
+          {activeTab === "messages" ? (
+          <div className="no-scrollbar mt-5 flex gap-3 overflow-x-auto pb-2">
             <button
               onClick={() => setSelectedChannelPackage("all")}
-              className={`flex h-[42px] shrink-0 items-center justify-center rounded-[12px] px-6 text-[15px] font-semibold transition ${
+              className={`flex h-[38px] shrink-0 items-center justify-center rounded-[10px] px-5 text-[14px] font-semibold transition ${
                 effectiveSelectedChannelPackage === "all"
                   ? "bg-[#1E3A8A] text-[#60A5FA]"
                   : "bg-[#1A1C23] text-[#9CA3AF]"
               }`}
             >
-              All
+              Hepsi
             </button>
             {enabledChannels.map((channel) => {
               const isSelected = effectiveSelectedChannelPackage === channel.packageName;
@@ -2713,7 +2705,7 @@ export default function Home() {
                   key={channel.packageName}
                   onClick={() => setSelectedChannelPackage(channel.packageName)}
                   title={sourceDisplayLabel(channel.sourceApp)}
-                  className={`flex h-[42px] shrink-0 items-center gap-2.5 rounded-[12px] px-4 text-[15px] font-semibold transition bg-[#1A1C23] ${
+                  className={`flex h-[38px] shrink-0 items-center gap-2 rounded-[10px] bg-[#1A1C23] px-3.5 text-[14px] font-semibold transition ${
                     isSelected ? "ring-1 ring-white/20" : ""
                   }`}
                 >
@@ -2729,33 +2721,125 @@ export default function Home() {
               );
             })}
           </div>
+          ) : null}
         </header>
 
 
 
-                <div className="relative z-20 flex-1 overflow-y-auto px-5 pb-8 pt-2">
-          {visibleMessages.length === 0 ? (
+        <div className="relative z-20 flex-1 overflow-y-auto px-5 pb-28 pt-2">
+          {activeTab === "settings" ? (
+            <div className="space-y-3">
+              <button
+                type="button"
+                onClick={() => setIsChannelPanelOpen(true)}
+                className="flex min-h-[72px] w-full items-center justify-between rounded-[16px] bg-[#1A1C23] px-4 py-3 text-left"
+              >
+                <span>
+                  <span className="block text-[16px] font-semibold text-white">Kanalları ayarla</span>
+                  <span className="mt-1 block text-[13px] text-[#9CA3AF]">
+                    {enabledChannelCount} açık / {channels.length} kaynak
+                  </span>
+                </span>
+                <span className="text-[24px] leading-none text-white">+</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={requestNotificationAccess}
+                className="flex min-h-[72px] w-full items-center justify-between rounded-[16px] bg-[#1A1C23] px-4 py-3 text-left"
+              >
+                <span>
+                  <span className="block text-[16px] font-semibold text-white">Bildirim erişimi</span>
+                  <span className="mt-1 block text-[13px] text-[#9CA3AF]">
+                    {isNotificationAccessEnabled ? "Açık" : "Mesajların düşmesi için aç"}
+                  </span>
+                </span>
+                <span className={`rounded-full px-3 py-1 text-[12px] font-bold ${isNotificationAccessEnabled ? "bg-[#22C55E] text-white" : "bg-white text-[#111318]"}`}>
+                  {isNotificationAccessEnabled ? "Bağlı" : "Aç"}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsBillingSheetOpen(true)}
+                className="flex min-h-[72px] w-full items-center justify-between rounded-[16px] bg-[#1A1C23] px-4 py-3 text-left"
+              >
+                <span>
+                  <span className="block text-[16px] font-semibold text-white">Kullanım süresi</span>
+                  <span className="mt-1 block text-[13px] text-[#9CA3AF]">
+                    İlk 3 gün ücretsiz, sonra süre seçilir
+                  </span>
+                </span>
+                <span className="rounded-full bg-white px-3 py-1 text-[12px] font-bold text-[#111318]">
+                  Yönet
+                </span>
+              </button>
+            </div>
+          ) : activeTab === "contacts" ? (
+            conversations.length === 0 ? (
+              <div className="flex min-h-[360px] flex-col items-center justify-center rounded-[18px] border border-white/8 bg-[#1A1C23] px-6 py-10 text-center">
+                <div className="flex h-[62px] w-[62px] items-center justify-center rounded-full bg-white/8 text-white">
+                  <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M16 11a4 4 0 1 0-8 0"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+                </div>
+                <h2 className="mt-5 text-[18px] font-semibold text-white">Kişi yok</h2>
+                <p className="mt-2 max-w-[260px] text-[14px] leading-5 text-[#9CA3AF]">
+                  Mesaj geldikçe kişiler otomatik oluşur.
+                </p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3">
+                {conversations.map((conversation) => {
+                  const theme = sourceThemeFor(conversation.sourceApp);
+                  const icon = brandIconFor(conversation.sourceApp, conversation.sourcePackage);
+
+                  return (
+                    <button
+                      key={conversation.id}
+                      type="button"
+                      onClick={() => {
+                        setActiveTab("messages");
+                        setSelectedConversationId(conversation.id);
+                      }}
+                      className="flex items-center gap-3 rounded-[16px] bg-[#1A1C23] p-4 text-left"
+                    >
+                      <div className={`flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-full text-white ${theme.accentClass}`}>
+                        <BrandIcon className="h-6 w-6" icon={icon} label={theme.label} />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-[16px] font-semibold text-white">{conversation.senderName}</div>
+                        <div className="mt-0.5 truncate text-[13px] text-[#9CA3AF]">
+                          {conversation.unreadCount} mesaj · {sourceDisplayLabel(conversation.sourceApp)}
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            )
+          ) : visibleConversations.length === 0 ? (
             <div className="flex min-h-[360px] flex-col items-center justify-center rounded-[18px] border border-white/8 bg-[#1A1C23] px-6 py-10 text-center">
               <div className="flex h-[62px] w-[62px] items-center justify-center rounded-full bg-white/8 text-white">
                 <BrandIcon className="h-8 w-8" icon={siGooglemessages} label="MSG" />
               </div>
-              <h2 className="mt-5 text-[18px] font-semibold text-white">Okunmamis mesaj yok</h2>
+              <h2 className="mt-5 text-[18px] font-semibold text-white">Okunmamış mesaj yok</h2>
               <p className="mt-2 max-w-[260px] text-[14px] leading-5 text-[#9CA3AF]">
-                Yeni musteri mesajlari geldiginde burada gorunur.
+                Yeni müşteri mesajları geldiğinde burada görünür.
               </p>
             </div>
           ) : (
             <div className="flex flex-col gap-3">
-              {visibleMessages.map((message) => {
-                const theme = sourceThemeFor(message.sourceApp);
-                const icon = brandIconFor(message.sourceApp, message.sourcePackage);
+              {visibleConversations.map((conversation) => {
+                const message = conversation.latestMessage;
+                const theme = sourceThemeFor(conversation.sourceApp);
+                const icon = brandIconFor(conversation.sourceApp, conversation.sourcePackage);
                 return (
                   <article
-                    key={message.id}
-                    className="relative flex items-start gap-4 p-4 bg-[#1A1C23] rounded-[18px]"
+                    key={conversation.id}
+                    onClick={() => setSelectedConversationId(conversation.id)}
+                    className="relative flex cursor-pointer items-start gap-3 rounded-[16px] bg-[#1A1C23] p-4 transition active:scale-[0.99]"
                   >
-                    <div className={`flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full text-white ${theme.accentClass}`}>
-                       <BrandIcon className="h-7 w-7" icon={icon} label={theme.label} />
+                    <div className={`flex h-[48px] w-[48px] shrink-0 items-center justify-center rounded-full text-white ${theme.accentClass}`}>
+                       <BrandIcon className="h-6 w-6" icon={icon} label={theme.label} />
                     </div>
 
                     <div className="min-w-0 flex-1">
@@ -2775,12 +2859,20 @@ export default function Home() {
 
                         <button
                           type="button"
-                          onClick={() => markAsRead(message.id)}
-                          className="shrink-0 rounded-full bg-white px-3 py-1.5 text-[12px] font-bold text-[#111318] transition active:scale-95"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            markConversationAsRead(conversation);
+                          }}
+                          className="shrink-0 rounded-[10px] bg-white px-3 py-1.5 text-[12px] font-bold text-[#111318] transition active:scale-95"
                         >
                           Okundu
                         </button>
                       </div>
+                      {conversation.unreadCount > 1 ? (
+                        <div className="mt-2 inline-flex rounded-full bg-white/10 px-2 py-0.5 text-[11px] font-bold text-white">
+                          {conversation.unreadCount} mesaj
+                        </div>
+                      ) : null}
                     </div>
                   </article>
                 );
@@ -2788,6 +2880,81 @@ export default function Home() {
             </div>
           )}
         </div>
+
+        <nav className="absolute inset-x-0 bottom-0 z-30 mx-auto w-full max-w-[430px] border-t border-white/10 bg-[#070B14]/95 px-5 pb-[max(14px,env(safe-area-inset-bottom))] pt-3 backdrop-blur-xl">
+          <div className="grid grid-cols-3 gap-2">
+            {([
+              ["messages", "Mesajlar", "M5 12h14M5 7h14M5 17h8"],
+              ["contacts", "Kişiler", "M16 11a4 4 0 1 0-8 0M4 21a8 8 0 0 1 16 0"],
+              ["settings", "Ayarlar", "M12 3v3M12 18v3M4.9 4.9 7.1 7.1m7.1 7.1-7.1-7.1M3 12h3m12 0h3"],
+            ] as const).map(([tab, label, path]) => {
+              const selected = activeTab === tab;
+
+              return (
+                <button
+                  key={tab}
+                  type="button"
+                  onClick={() => {
+                    setActiveTab(tab);
+                    setSelectedConversationId(null);
+                  }}
+                  className={`flex h-[54px] flex-col items-center justify-center gap-1 rounded-[12px] text-[11px] font-bold transition ${
+                    selected ? "bg-white text-[#111318]" : "text-[#9CA3AF]"
+                  }`}
+                >
+                  <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                    <path d={path} />
+                  </svg>
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        </nav>
+
+        {selectedConversation ? (
+          <section className="absolute inset-0 z-40 flex flex-col bg-[#070B14]">
+            <header className="flex items-center gap-3 px-5 pb-4 pt-8">
+              <button
+                type="button"
+                onClick={() => setSelectedConversationId(null)}
+                className="flex h-11 w-11 items-center justify-center rounded-[12px] bg-white/10 text-white"
+                aria-label="Geri"
+              >
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4"><path d="M15 18l-6-6 6-6"/></svg>
+              </button>
+              <div className="min-w-0 flex-1">
+                <h2 className="truncate text-[20px] font-bold text-white">{selectedConversation.senderName}</h2>
+                <p className="text-[13px] text-[#9CA3AF]">
+                  {sourceDisplayLabel(selectedConversation.sourceApp)} · {selectedConversation.unreadCount} mesaj
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => markConversationAsRead(selectedConversation)}
+                className="rounded-[10px] bg-white px-3 py-2 text-[12px] font-bold text-[#111318]"
+              >
+                Okundu
+              </button>
+            </header>
+
+            <div className="flex-1 space-y-3 overflow-y-auto px-5 pb-6">
+              {selectedConversation.messages
+                .slice()
+                .reverse()
+                .map((message) => (
+                  <article key={message.id} className="rounded-[16px] bg-[#1A1C23] p-4">
+                    <div className="mb-2 text-[12px] font-semibold text-[#9CA3AF]">
+                      {formatDateTime(message.receivedAt)}
+                    </div>
+                    <p className="whitespace-pre-wrap text-[15px] leading-6 text-white">
+                      {message.messageText}
+                    </p>
+                  </article>
+                ))}
+            </div>
+          </section>
+        ) : null}
 
       </section>
 
