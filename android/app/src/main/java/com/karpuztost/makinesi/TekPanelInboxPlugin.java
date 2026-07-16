@@ -64,15 +64,18 @@ public class TekPanelInboxPlugin extends Plugin {
 
     @PluginMethod
     public void openNotificationAccessSettings(PluginCall call) {
-        Intent intent = new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS);
+        ComponentName listener = listenerComponent(getContext());
+        Intent intent = new Intent(Settings.ACTION_NOTIFICATION_LISTENER_DETAIL_SETTINGS);
+        intent.putExtra(
+                Settings.EXTRA_NOTIFICATION_LISTENER_COMPONENT_NAME,
+                listener.flattenToString()
+        );
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
         try {
             getContext().startActivity(intent);
         } catch (Exception exception) {
-            Intent fallback = new Intent(Settings.ACTION_SETTINGS);
-            fallback.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            getContext().startActivity(fallback);
+            openNotificationListenerList();
         }
         call.resolve();
     }
@@ -128,5 +131,17 @@ public class TekPanelInboxPlugin extends Plugin {
 
     private ComponentName listenerComponent(Context context) {
         return new ComponentName(context, TekPanelNotificationListener.class);
+    }
+
+    private void openNotificationListenerList() {
+        try {
+            Intent fallback = new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS);
+            fallback.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            getContext().startActivity(fallback);
+        } catch (Exception exception) {
+            Intent settings = new Intent(Settings.ACTION_SETTINGS);
+            settings.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            getContext().startActivity(settings);
+        }
     }
 }
