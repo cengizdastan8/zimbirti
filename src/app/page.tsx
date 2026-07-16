@@ -2209,37 +2209,27 @@ export default function Home() {
 
           <div className="channel-sheet mt-auto max-h-[88vh] overflow-y-auto rounded-[20px] p-3">
 
-            <div className="flex items-start justify-between gap-3 px-1 pb-3">
+            <div className="flex items-center gap-4 px-1 pb-5">
+              <button
+                type="button"
+                onClick={() => setIsChannelPanelOpen(false)}
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] text-white transition active:scale-[0.97]"
+                aria-label="Kapat"
+              >
+                <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.05"><path d="M15 18l-6-6 6-6"/></svg>
+              </button>
 
               <div className="min-w-0">
 
-                <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--ink-muted)]">SinglePanel</p>
-
-                <h2 className="mt-1 text-[23px] font-black leading-7 tracking-tight text-white">Kanallar</h2>
+                <h2 className="text-[33px] font-black leading-9 tracking-[-0.04em] text-white">Connections</h2>
 
                 <p className="mt-1 text-[13px] font-semibold text-[var(--ink-secondary)]">
 
-                  {enabledChannelCount} açık / {channels.length} kaynak
+                  {enabledChannelCount} connected / {channels.length} sources
 
                 </p>
 
               </div>
-
-              <button
-
-                type="button"
-
-                onClick={() => setIsChannelPanelOpen(false)}
-
-                className="channel-close tap-target flex w-14 shrink-0 items-center justify-center text-[15px] font-bold text-white transition active:scale-[0.97]"
-
-                aria-label="Kapat"
-
-              >
-
-                Kapat
-
-              </button>
 
             </div>
 
@@ -2265,7 +2255,7 @@ export default function Home() {
 
                     onClick={() => void toggleAllChannels()}
 
-                    className="channel-row flex min-h-[58px] w-full items-center justify-between gap-2.5 px-3 py-2.5 text-left transition active:scale-[0.99]"
+                    className="channel-row flex min-h-[82px] w-full items-center justify-between gap-3 px-4 py-3 text-left transition active:scale-[0.99]"
 
                     aria-label="Tüm kanalları değiştir"
 
@@ -2283,7 +2273,7 @@ export default function Home() {
 
                       <span className="min-w-0">
 
-                      <span className="block text-[17px] font-black leading-5 text-white">
+                      <span className="block text-[22px] font-black leading-6 text-white">
 
                         Tüm kanallar
 
@@ -2291,7 +2281,7 @@ export default function Home() {
 
                       <span className="mt-0.5 block text-[12px] font-semibold leading-4 text-[var(--ink-muted)]">
 
-                        Toplu değiştirir. Yanlışsa alttan geri alabilirsin.
+                        Toplu değiştirir. Yanlışsa geri alabilirsin.
 
                       </span>
 
@@ -2299,7 +2289,10 @@ export default function Home() {
 
                     </span>
 
-                    <span className="channel-check" data-on={areAllChannelsEnabled}>✓</span>
+                    <span className="flex shrink-0 items-center gap-2">
+                      <span className="channel-check" data-on={areAllChannelsEnabled}>✓</span>
+                      <span className="channel-chevron">›</span>
+                    </span>
 
                   </button>
 
@@ -2332,7 +2325,7 @@ export default function Home() {
 
                         onClick={() => toggleChannel(channel.packageName)}
 
-                        className="channel-row flex min-h-[58px] w-full items-center justify-between gap-2.5 px-3 py-2.5 text-left text-[var(--ink-primary)] transition active:scale-[0.99]"
+                        className="channel-row flex min-h-[88px] w-full items-center justify-between gap-4 px-4 py-3 text-left text-[var(--ink-primary)] transition active:scale-[0.99]"
 
                         aria-pressed={channel.enabled}
 
@@ -2342,7 +2335,7 @@ export default function Home() {
 
                           <span
 
-                            className={`channel-app-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[9px] font-black tracking-[0.08em] ${
+                            className={`channel-app-icon flex h-16 w-16 shrink-0 items-center justify-center rounded-full text-[10px] font-black tracking-[0.08em] ${
 
                               channel.iconBase64 ? "bg-[var(--card)] text-white" : theme.badgeClass
 
@@ -2358,7 +2351,7 @@ export default function Home() {
 
                                 alt=""
 
-                                className="h-7 w-7 rounded-lg object-contain"
+                                className="h-11 w-11 rounded-xl object-contain"
 
                               />
 
@@ -2366,7 +2359,7 @@ export default function Home() {
 
                               <BrandIcon
 
-                                className="h-5 w-5"
+                                className="h-9 w-9"
 
                                 icon={brandIconFor(channel.sourceApp, channel.packageName)}
 
@@ -2380,15 +2373,15 @@ export default function Home() {
 
                           <span className="block min-w-0">
 
-                            <span className="block truncate text-[16px] font-black leading-5 text-white">
+                            <span className="block truncate text-[22px] font-black leading-7 text-white">
 
                               {channel.label}
 
                             </span>
 
-                            <span className="mt-0.5 block truncate text-[12px] font-semibold text-[var(--ink-muted)]">
+                            <span className="mt-0.5 block truncate text-[16px] font-medium text-[#B9C4DC]">
 
-                              {channel.enabled ? "Mesajları alıyor" : "Kapalı"}
+                              <span className={channel.enabled ? "text-[#22C55E]" : "text-[#64748B]"}>●</span> {channel.enabled ? "Connected" : "Off"}
 
                             </span>
 
@@ -2396,7 +2389,10 @@ export default function Home() {
 
                         </span>
 
-                        <span className="channel-check" data-on={channel.enabled}>✓</span>
+                        <span className="flex shrink-0 items-center gap-2">
+                          <span className="channel-check" data-on={channel.enabled}>✓</span>
+                          <span className="channel-chevron">›</span>
+                        </span>
 
                       </button>
 
@@ -2631,7 +2627,7 @@ export default function Home() {
 
             >
 
-              {billingBusyPlan === "restore" ? "Kontrol ediliyor..." : "Satın almayı geri yükle"}
+              {billingBusyPlan === "restore" ? "Kontrol ediliyor..." : "Önceki aboneliği kontrol et"}
 
             </button>
 
@@ -2644,20 +2640,32 @@ export default function Home() {
 
 
       <section className="singlepanel-screen relative z-10 mx-auto flex min-h-[100dvh] w-full max-w-[430px] flex-col overflow-hidden text-white">
-        <header className="relative z-20 px-5 pb-4 pt-8">
+        <header className="relative z-20 px-5 pb-4 pt-7">
+          <div className="mb-7 flex items-center gap-3">
+            <img src="/singlepanel-logo.png" alt="" className="h-[54px] w-[54px] rounded-[16px] shadow-[0_0_28px_rgba(24,119,242,0.22)]" />
+            <div className="brand-title text-[28px] font-black leading-none tracking-[-0.02em]">
+              <span className="text-white">Single</span><span className="brand-gradient">Panel</span>
+            </div>
+          </div>
+
           <div className="flex items-center justify-between">
             <div className="min-w-0">
-              <h1 className="text-[30px] font-bold tracking-tight text-white">
+              <h1 className="screen-title text-[34px] font-black tracking-[-0.04em] text-white">
                 {activeTab === "messages"
-                  ? "Mesajlar"
+                  ? "Unified Inbox"
                   : activeTab === "contacts"
-                    ? "Kişiler"
-                    : "Ayarlar"}
+                    ? "Contacts"
+                    : "Settings"}
               </h1>
             </div>
             <div className="flex gap-3 text-white">
+              {activeTab === "messages" ? (
+                <button className="icon-button transition active:scale-95" aria-label="Ara">
+                  <svg width="27" height="27" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6"/></svg>
+                </button>
+              ) : null}
               <button
-                className="tap-target transition active:scale-95"
+                className="icon-button transition active:scale-95"
                 onClick={() => setIsChannelPanelOpen((current) => !current)}
                 aria-label="Kanalları ayarla"
               >
@@ -2670,10 +2678,10 @@ export default function Home() {
           <div className="no-scrollbar mt-5 flex gap-3 overflow-x-auto pb-2">
             <button
               onClick={() => setSelectedChannelPackage("all")}
-              className={`flex h-[38px] shrink-0 items-center justify-center rounded-[10px] px-5 text-[14px] font-semibold transition ${
+              className={`inbox-chip flex h-[46px] shrink-0 items-center justify-center rounded-[16px] px-6 text-[16px] font-bold transition ${
                 effectiveSelectedChannelPackage === "all"
-                  ? "bg-[#1E3A8A] text-[#60A5FA]"
-                  : "bg-[#1A1C23] text-[#9CA3AF]"
+                  ? "is-selected text-[#38A3FF]"
+                  : "text-[#B9C4DC]"
               }`}
             >
               Hepsi
@@ -2693,15 +2701,15 @@ export default function Home() {
                   key={channel.packageName}
                   onClick={() => setSelectedChannelPackage(channel.packageName)}
                   title={sourceDisplayLabel(channel.sourceApp)}
-                  className={`flex h-[38px] shrink-0 items-center gap-2 rounded-[10px] bg-[#1A1C23] px-3.5 text-[14px] font-semibold transition ${
-                    isSelected ? "ring-1 ring-white/20" : ""
+                  className={`inbox-chip flex h-[46px] shrink-0 items-center gap-2.5 rounded-[16px] px-4 text-[16px] font-bold transition ${
+                    isSelected ? "is-selected" : ""
                   }`}
                 >
-                  <span className={`flex h-[18px] w-[18px] items-center justify-center rounded-full ${textColor}`}>
+                  <span className={`flex h-[24px] w-[24px] items-center justify-center rounded-full ${textColor}`}>
                     {channel.iconBase64 ? (
-                      <img src={`data:image/png;base64,${channel.iconBase64}`} alt="" className="h-[18px] w-[18px]" />
+                      <img src={`data:image/png;base64,${channel.iconBase64}`} alt="" className="h-[24px] w-[24px]" />
                     ) : (
-                      <BrandIcon className="h-[18px] w-[18px]" icon={icon} label={theme.label} />
+                      <BrandIcon className="h-[24px] w-[24px]" icon={icon} label={theme.label} />
                     )}
                   </span>
                   <span className={textColor}>{channel.label}</span>
@@ -2720,25 +2728,25 @@ export default function Home() {
               <button
                 type="button"
                 onClick={() => setIsChannelPanelOpen(true)}
-                className="flex min-h-[72px] w-full items-center justify-between rounded-[16px] bg-[#1A1C23] px-4 py-3 text-left"
+                className="message-card flex min-h-[86px] w-full items-center justify-between px-4 py-3 text-left transition active:scale-[0.99]"
               >
                 <span>
-                  <span className="block text-[16px] font-semibold text-white">Kanalları ayarla</span>
-                  <span className="mt-1 block text-[13px] text-[#9CA3AF]">
+                  <span className="block text-[20px] font-black text-white">Kanalları ayarla</span>
+                  <span className="mt-1 block text-[15px] font-medium text-[#B9C4DC]">
                     {enabledChannelCount} açık / {channels.length} kaynak
                   </span>
                 </span>
-                <span className="text-[24px] leading-none text-white">+</span>
+                <span className="channel-chevron">›</span>
               </button>
 
               <button
                 type="button"
                 onClick={requestNotificationAccess}
-                className="flex min-h-[72px] w-full items-center justify-between rounded-[16px] bg-[#1A1C23] px-4 py-3 text-left"
+                className="message-card flex min-h-[86px] w-full items-center justify-between px-4 py-3 text-left transition active:scale-[0.99]"
               >
                 <span>
-                  <span className="block text-[16px] font-semibold text-white">Bildirim erişimi</span>
-                  <span className="mt-1 block text-[13px] text-[#9CA3AF]">
+                  <span className="block text-[20px] font-black text-white">Bildirim erişimi</span>
+                  <span className="mt-1 block text-[15px] font-medium text-[#B9C4DC]">
                     {isNotificationAccessEnabled ? "Açık" : "Mesajların düşmesi için aç"}
                   </span>
                 </span>
@@ -2750,11 +2758,11 @@ export default function Home() {
               <button
                 type="button"
                 onClick={() => setIsBillingSheetOpen(true)}
-                className="flex min-h-[72px] w-full items-center justify-between rounded-[16px] bg-[#1A1C23] px-4 py-3 text-left"
+                className="message-card flex min-h-[86px] w-full items-center justify-between px-4 py-3 text-left transition active:scale-[0.99]"
               >
                 <span>
-                  <span className="block text-[16px] font-semibold text-white">Kullanım süresi</span>
-                  <span className="mt-1 block text-[13px] text-[#9CA3AF]">
+                  <span className="block text-[20px] font-black text-white">Kullanım süresi</span>
+                  <span className="mt-1 block text-[15px] font-medium text-[#B9C4DC]">
                     İlk 3 gün ücretsiz, sonra süre seçilir
                   </span>
                 </span>
@@ -2765,7 +2773,7 @@ export default function Home() {
             </div>
           ) : activeTab === "contacts" ? (
             conversations.length === 0 ? (
-              <div className="flex min-h-[360px] flex-col items-center justify-center rounded-[18px] border border-white/8 bg-[#1A1C23] px-6 py-10 text-center">
+              <div className="message-card flex min-h-[360px] flex-col items-center justify-center px-6 py-10 text-center">
                 <div className="flex h-[62px] w-[62px] items-center justify-center rounded-full bg-white/8 text-white">
                   <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2"><path d="M16 11a4 4 0 1 0-8 0"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
                 </div>
@@ -2788,14 +2796,14 @@ export default function Home() {
                         setActiveTab("messages");
                         setSelectedConversationId(conversation.id);
                       }}
-                      className="flex items-center gap-3 rounded-[16px] bg-[#1A1C23] p-4 text-left"
+                      className="message-card flex items-center gap-4 p-4 text-left transition active:scale-[0.99]"
                     >
-                      <div className={`flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-full text-white ${theme.accentClass}`}>
-                        <BrandIcon className="h-6 w-6" icon={icon} label={theme.label} />
+                      <div className={`flex h-[64px] w-[64px] shrink-0 items-center justify-center rounded-full text-white ${theme.accentClass}`}>
+                        <BrandIcon className="h-9 w-9" icon={icon} label={theme.label} />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="truncate text-[16px] font-semibold text-white">{conversation.senderName}</div>
-                        <div className="mt-0.5 truncate text-[13px] text-[#9CA3AF]">
+                        <div className="truncate text-[20px] font-black tracking-[-0.02em] text-white">{conversation.senderName}</div>
+                        <div className="mt-0.5 truncate text-[15px] font-medium text-[#B9C4DC]">
                           {conversation.unreadCount} mesaj · {sourceDisplayLabel(conversation.sourceApp)}
                         </div>
                       </div>
@@ -2806,7 +2814,7 @@ export default function Home() {
             )
           ) : visibleConversations.length === 0 ? (
             <div className="space-y-3">
-              <div className="flex min-h-[300px] flex-col items-center justify-center rounded-[18px] border border-white/8 bg-[#1A1C23] px-6 py-9 text-center">
+              <div className="message-card flex min-h-[300px] flex-col items-center justify-center px-6 py-9 text-center">
               <div className="flex h-[62px] w-[62px] items-center justify-center rounded-full bg-white/8 text-white">
                 <BrandIcon className="h-8 w-8" icon={siGooglemessages} label="MSG" />
               </div>
@@ -2820,7 +2828,7 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={requestNotificationAccess}
-                  className="channel-permission tap-target w-full rounded-[16px] px-5 py-4 text-left text-white transition active:scale-[0.99]"
+                  className="message-card tap-target w-full px-5 py-4 text-left text-white transition active:scale-[0.99]"
                 >
                   <span className="block text-[17px] font-black">Bildirim erişimini aç</span>
                   <span className="mt-1 block text-[13px] font-semibold leading-5 text-white/70">
@@ -2839,24 +2847,24 @@ export default function Home() {
                   <article
                     key={conversation.id}
                     onClick={() => setSelectedConversationId(conversation.id)}
-                    className="relative flex cursor-pointer items-start gap-3 rounded-[16px] bg-[#1A1C23] p-4 transition active:scale-[0.99]"
+                    className="message-card relative flex cursor-pointer items-center gap-4 p-4 transition active:scale-[0.99]"
                   >
-                    <div className={`flex h-[48px] w-[48px] shrink-0 items-center justify-center rounded-full text-white ${theme.accentClass}`}>
-                       <BrandIcon className="h-6 w-6" icon={icon} label={theme.label} />
+                    <div className={`flex h-[64px] w-[64px] shrink-0 items-center justify-center rounded-full text-white shadow-[0_0_24px_rgba(255,255,255,0.08)] ${theme.accentClass}`}>
+                       <BrandIcon className="h-9 w-9" icon={icon} label={theme.label} />
                     </div>
 
                     <div className="min-w-0 flex-1">
                       <div className="flex items-start justify-between gap-3">
-                        <h2 className="truncate text-[16px] font-semibold text-white">
+                        <h2 className="truncate text-[20px] font-black tracking-[-0.02em] text-white">
                           {message.senderName}
                         </h2>
-                        <span className="shrink-0 text-[13px] text-[#9CA3AF]">
+                        <span className="shrink-0 pt-1 text-[14px] font-semibold text-[#B9C4DC]">
                           {formatDateTime(message.receivedAt)}
                         </span>
                       </div>
 
                       <div className="mt-1 flex items-end justify-between gap-3">
-                        <p className="line-clamp-2 min-w-0 text-[14px] leading-5 text-[#9CA3AF]">
+                        <p className="line-clamp-2 min-w-0 text-[16px] font-medium leading-6 text-[#B9C4DC]">
                           {message.messageText}
                         </p>
 
@@ -2866,13 +2874,13 @@ export default function Home() {
                             event.stopPropagation();
                             markConversationAsRead(conversation);
                           }}
-                          className="shrink-0 rounded-[10px] bg-white px-3 py-1.5 text-[12px] font-bold text-[#111318] transition active:scale-95"
+                          className="shrink-0 rounded-[12px] bg-white px-3 py-1.5 text-[12px] font-black text-[#111318] transition active:scale-95"
                         >
                           Okundu
                         </button>
                       </div>
                       {conversation.unreadCount > 1 ? (
-                        <div className="mt-2 inline-flex rounded-full bg-white/10 px-2 py-0.5 text-[11px] font-bold text-white">
+                        <div className={`mt-2 inline-grid h-8 min-w-8 place-items-center rounded-full px-2 text-[15px] font-black text-white ${theme.accentClass}`}>
                           {conversation.unreadCount} mesaj
                         </div>
                       ) : null}
@@ -2884,7 +2892,7 @@ export default function Home() {
           )}
         </div>
 
-        <nav className="absolute inset-x-0 bottom-0 z-30 mx-auto w-full max-w-[430px] border-t border-white/10 bg-[#070B14]/95 px-5 pb-[max(14px,env(safe-area-inset-bottom))] pt-3 backdrop-blur-xl">
+        <nav className="bottom-nav absolute inset-x-0 bottom-0 z-30 mx-auto w-full max-w-[430px] px-5 pb-[max(14px,env(safe-area-inset-bottom))] pt-3">
           <div className="grid grid-cols-3 gap-2">
             {([
               ["messages", "Mesajlar", "M5 12h14M5 7h14M5 17h8"],
@@ -2901,8 +2909,8 @@ export default function Home() {
                     setActiveTab(tab);
                     setSelectedConversationId(null);
                   }}
-                  className={`flex h-[54px] flex-col items-center justify-center gap-1 rounded-[12px] text-[11px] font-bold transition ${
-                    selected ? "bg-white text-[#111318]" : "text-[#9CA3AF]"
+                  className={`bottom-nav-item flex h-[54px] flex-col items-center justify-center gap-1 rounded-[14px] text-[11px] font-bold transition ${
+                    selected ? "is-selected" : "text-[#9CA3AF]"
                   }`}
                 >
                   <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
@@ -2916,7 +2924,7 @@ export default function Home() {
         </nav>
 
         {selectedConversation ? (
-          <section className="absolute inset-0 z-40 flex flex-col bg-[#070B14]">
+          <section className="singlepanel-screen absolute inset-0 z-40 flex flex-col">
             <header className="flex items-center gap-3 px-5 pb-4 pt-8">
               <button
                 type="button"
@@ -2946,7 +2954,7 @@ export default function Home() {
                 .slice()
                 .reverse()
                 .map((message) => (
-                  <article key={message.id} className="rounded-[16px] bg-[#1A1C23] p-4">
+                  <article key={message.id} className="message-card p-4">
                     <div className="mb-2 text-[12px] font-semibold text-[#9CA3AF]">
                       {formatDateTime(message.receivedAt)}
                     </div>
