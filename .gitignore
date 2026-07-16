@@ -40,6 +40,30 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+*.log
+*.apk
+
+# one-off local patch/recovery artifacts
+/apply_*.py
+/extract*.py
+/find_history.py
+/fix_*.py
+/move_button*.py
+/recover_*.py
+/remove_*.py
+/replace_ui.py
+/restore_ui.py
+/rewrite_ui*.py
+/simplify_access_gate.py
+/update_*.py
+/yt_*.py
+/get_yt.py
+/model_thought_*.txt
+/new_access.txt
+/FRONTEND.txt
+/transcripts.txt
+/youtube_videolar_bilgileri.txt
+/phone-*.png
 
 # env files (can opt-in for committing if needed)
 .env*
