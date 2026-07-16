@@ -101,6 +101,11 @@ type Conversation = {
   unreadCount: number;
 };
 
+type ChannelUndoState = {
+  channels: ChannelSetting[];
+  label: string;
+} | null;
+
 
 
 type NativeCapturedMessage = {
@@ -1219,6 +1224,8 @@ export default function Home() {
 
   const [channels, setChannels] = useState<ChannelSetting[]>(fallbackChannels);
 
+  const [channelUndo, setChannelUndo] = useState<ChannelUndoState>(null);
+
   const [activeTab, setActiveTab] = useState<ActiveTab>("messages");
 
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
@@ -1636,21 +1643,7 @@ export default function Home() {
 
     trackPermissionExperimentEvent(permissionExperimentVariant, "cta_clicked");
 
-
-
-    if (permissionExperimentVariant === "direct") {
-
-      void openNotificationAccess();
-
-      return;
-
-    }
-
-
-
-    trackPermissionExperimentEvent(permissionExperimentVariant, "primer_shown");
-
-    setIsPermissionPrimerOpen(true);
+    void openNotificationAccess();
 
   }, [openNotificationAccess, permissionExperimentVariant]);
 
@@ -1729,6 +1722,7 @@ export default function Home() {
   const toggleChannel = useCallback(
 
     (packageName: string) => {
+      setChannelUndo(null);
 
       const nextChannels = channels.map((channel) =>
 
@@ -1753,6 +1747,7 @@ export default function Home() {
   const toggleAllChannels = useCallback(() => {
 
     const shouldEnable = !channels.every((channel) => channel.enabled);
+    const previousEnabledCount = channels.filter((channel) => channel.enabled).length;
 
     const nextChannels = channels.map((channel) => ({
 
@@ -1762,9 +1757,26 @@ export default function Home() {
 
     }));
 
+    setChannelUndo({
+      channels,
+      label: shouldEnable
+        ? `${previousEnabledCount} açık kanala geri dön`
+        : `${previousEnabledCount} açık kanalı geri getir`,
+    });
+
     void saveChannelSettings(nextChannels);
 
   }, [channels, saveChannelSettings]);
+
+  const undoChannelBulkChange = useCallback(() => {
+    if (!channelUndo) {
+      return;
+    }
+
+    const previousChannels = channelUndo.channels;
+    setChannelUndo(null);
+    void saveChannelSettings(previousChannels);
+  }, [channelUndo, saveChannelSettings]);
 
   const markConversationAsRead = useCallback((conversation: Conversation) => {
     const ids = new Set(conversation.messages.map((message) => message.id));
@@ -2195,7 +2207,7 @@ export default function Home() {
 
         <section className="ledger-panel-in fixed inset-0 z-40 mx-auto flex w-full max-w-[430px] flex-col bg-black/40 px-5 pb-6 pt-8 backdrop-blur-[2px]">
 
-          <div className="channel-sheet mt-auto max-h-[88vh] overflow-hidden rounded-[24px] p-4">
+          <div className="channel-sheet mt-auto max-h-[88vh] overflow-y-auto rounded-[24px] p-4">
 
             <div className="flex items-start justify-between gap-3 px-1 pb-4">
 
@@ -2233,7 +2245,7 @@ export default function Home() {
 
 
 
-            <div className="no-scrollbar max-h-[58vh] space-y-3 overflow-y-auto pb-1">
+            <div className="no-scrollbar space-y-3 pb-1">
 
               {channels.length === 0 ? (
 
@@ -2277,9 +2289,9 @@ export default function Home() {
 
                       </span>
 
-                      <span className="mt-1 block text-[15px] font-semibold text-[var(--ink-muted)]">
+                      <span className="mt-1 block text-[13px] font-semibold leading-5 text-[var(--ink-muted)]">
 
-                        Tek dokunuşla hepsini aç veya kapat
+                        Toplu değiştirir. Yanlışsa alttan geri alabilirsin.
 
                       </span>
 
@@ -2390,6 +2402,16 @@ export default function Home() {
 
 
             <div className="grid gap-3 pt-3">
+              {channelUndo ? (
+                <button
+                  type="button"
+                  onClick={undoChannelBulkChange}
+                  className="channel-undo tap-target flex w-full items-center justify-between rounded-[16px] px-4 py-3 text-left text-[15px] font-black text-white transition active:scale-[0.99]"
+                >
+                  <span>{channelUndo.label}</span>
+                  <span className="text-[13px] text-white/70">Geri al</span>
+                </button>
+              ) : null}
 
               <button
 
@@ -2417,11 +2439,14 @@ export default function Home() {
 
                   onClick={requestNotificationAccess}
 
-                  className="channel-add tap-target px-5 py-3 text-left text-[16px] font-black text-white transition active:scale-[0.99]"
+                  className="channel-permission tap-target px-5 py-4 text-left text-white transition active:scale-[0.99]"
 
                 >
 
-                  Bildirim erişimini aç
+                  <span className="block text-[17px] font-black">Bildirim erişimini aç</span>
+                  <span className="mt-1 block text-[13px] font-semibold leading-5 text-white/70">
+                    Direkt Android izin ekranına götürür.
+                  </span>
 
                 </button>
 

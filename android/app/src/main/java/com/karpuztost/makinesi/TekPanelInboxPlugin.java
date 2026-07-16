@@ -64,15 +64,13 @@ public class TekPanelInboxPlugin extends Plugin {
 
     @PluginMethod
     public void openNotificationAccessSettings(PluginCall call) {
-        ComponentName listener = listenerComponent(getContext());
-        Intent intent = new Intent(Settings.ACTION_NOTIFICATION_LISTENER_DETAIL_SETTINGS);
-        intent.putExtra(Settings.EXTRA_NOTIFICATION_LISTENER_COMPONENT_NAME, listener);
+        Intent intent = new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS);
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
         try {
             getContext().startActivity(intent);
         } catch (Exception exception) {
-            Intent fallback = new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS);
+            Intent fallback = new Intent(Settings.ACTION_SETTINGS);
             fallback.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             getContext().startActivity(fallback);
         }
