@@ -204,7 +204,7 @@ body {
 .channel-add,
 .channel-undo,
 .channel-permission {
-  border-radius: 18px;
+  border-radius: 14px;
 }
 
 .channel-undo {
@@ -222,7 +222,7 @@ body {
 }
 
 .channel-close {
-  border-radius: 18px;
+  border-radius: 14px;
 }
 
 .channel-app-icon {
@@ -233,8 +233,8 @@ body {
   position: relative;
   display: grid;
   place-items: center;
-  width: 48px;
-  height: 48px;
+  width: 40px;
+  height: 40px;
   flex: 0 0 auto;
   border-radius: 50%;
   background: linear-gradient(145deg, rgba(24, 119, 242, 0.22), rgba(17, 33, 56, 0.85));
@@ -244,8 +244,8 @@ body {
 
 .channel-all-dot {
   position: absolute;
-  width: 22px;
-  height: 7px;
+  width: 18px;
+  height: 6px;
   border-radius: 999px;
 }
 
@@ -255,15 +255,15 @@ body {
 
 .channel-check {
   display: grid;
-  width: 34px;
-  height: 34px;
+  width: 28px;
+  height: 28px;
   flex: 0 0 auto;
   place-items: center;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: transparent;
-  font-size: 20px;
+  font-size: 17px;
   font-weight: 900;
 }
 

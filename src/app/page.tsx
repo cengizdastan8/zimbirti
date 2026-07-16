@@ -2207,17 +2207,17 @@ export default function Home() {
 
         <section className="ledger-panel-in fixed inset-0 z-40 mx-auto flex w-full max-w-[430px] flex-col bg-black/40 px-5 pb-6 pt-8 backdrop-blur-[2px]">
 
-          <div className="channel-sheet mt-auto max-h-[88vh] overflow-y-auto rounded-[24px] p-4">
+          <div className="channel-sheet mt-auto max-h-[88vh] overflow-y-auto rounded-[20px] p-3">
 
-            <div className="flex items-start justify-between gap-3 px-1 pb-4">
+            <div className="flex items-start justify-between gap-3 px-1 pb-3">
 
               <div className="min-w-0">
 
                 <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--ink-muted)]">SinglePanel</p>
 
-                <h2 className="mt-1 text-[26px] font-black leading-8 tracking-tight text-white">Kanallar</h2>
+                <h2 className="mt-1 text-[23px] font-black leading-7 tracking-tight text-white">Kanallar</h2>
 
-                <p className="mt-2 text-[14px] font-semibold text-[var(--ink-secondary)]">
+                <p className="mt-1 text-[13px] font-semibold text-[var(--ink-secondary)]">
 
                   {enabledChannelCount} açık / {channels.length} kaynak
 
@@ -2231,7 +2231,7 @@ export default function Home() {
 
                 onClick={() => setIsChannelPanelOpen(false)}
 
-                className="channel-close tap-target flex w-16 shrink-0 items-center justify-center text-[18px] font-bold text-white transition active:scale-[0.97]"
+                className="channel-close tap-target flex w-14 shrink-0 items-center justify-center text-[15px] font-bold text-white transition active:scale-[0.97]"
 
                 aria-label="Kapat"
 
@@ -2245,7 +2245,7 @@ export default function Home() {
 
 
 
-            <div className="no-scrollbar space-y-3 pb-1">
+            <div className="no-scrollbar space-y-2.5 pb-1">
 
               {channels.length === 0 ? (
 
@@ -2265,7 +2265,7 @@ export default function Home() {
 
                     onClick={() => void toggleAllChannels()}
 
-                    className="channel-row flex min-h-[70px] w-full items-center justify-between gap-3 px-4 py-3 text-left transition active:scale-[0.99]"
+                    className="channel-row flex min-h-[58px] w-full items-center justify-between gap-2.5 px-3 py-2.5 text-left transition active:scale-[0.99]"
 
                     aria-label="Tüm kanalları değiştir"
 
@@ -2273,7 +2273,7 @@ export default function Home() {
 
                   >
 
-                    <span className="flex min-w-0 items-center gap-4">
+                    <span className="flex min-w-0 items-center gap-3">
 
                       <span className="channel-all-icon">
                         <span className="channel-all-dot bg-[#ff2e55]" />
@@ -2283,13 +2283,13 @@ export default function Home() {
 
                       <span className="min-w-0">
 
-                      <span className="block text-[21px] font-black leading-6 text-white">
+                      <span className="block text-[17px] font-black leading-5 text-white">
 
                         Tüm kanallar
 
                       </span>
 
-                      <span className="mt-1 block text-[13px] font-semibold leading-5 text-[var(--ink-muted)]">
+                      <span className="mt-0.5 block text-[12px] font-semibold leading-4 text-[var(--ink-muted)]">
 
                         Toplu değiştirir. Yanlışsa alttan geri alabilirsin.
 
@@ -2302,6 +2302,17 @@ export default function Home() {
                     <span className="channel-check" data-on={areAllChannelsEnabled}>✓</span>
 
                   </button>
+
+                  {channelUndo ? (
+                    <button
+                      type="button"
+                      onClick={undoChannelBulkChange}
+                      className="channel-undo tap-target flex w-full items-center justify-between rounded-[14px] px-3 py-2.5 text-left text-[14px] font-black text-white transition active:scale-[0.99]"
+                    >
+                      <span>{channelUndo.label}</span>
+                      <span className="text-[12px] text-white/70">Geri al</span>
+                    </button>
+                  ) : null}
 
 
 
@@ -2321,17 +2332,17 @@ export default function Home() {
 
                         onClick={() => toggleChannel(channel.packageName)}
 
-                        className="channel-row flex min-h-[74px] w-full items-center justify-between gap-3 px-4 py-3 text-left text-[var(--ink-primary)] transition active:scale-[0.99]"
+                        className="channel-row flex min-h-[58px] w-full items-center justify-between gap-2.5 px-3 py-2.5 text-left text-[var(--ink-primary)] transition active:scale-[0.99]"
 
                         aria-pressed={channel.enabled}
 
                       >
 
-                        <span className="flex min-w-0 items-center gap-4">
+                        <span className="flex min-w-0 items-center gap-3">
 
                           <span
 
-                            className={`channel-app-icon flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-[10px] font-black tracking-[0.08em] ${
+                            className={`channel-app-icon flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[9px] font-black tracking-[0.08em] ${
 
                               channel.iconBase64 ? "bg-[var(--card)] text-white" : theme.badgeClass
 
@@ -2347,7 +2358,7 @@ export default function Home() {
 
                                 alt=""
 
-                                className="h-8 w-8 rounded-xl object-contain"
+                                className="h-7 w-7 rounded-lg object-contain"
 
                               />
 
@@ -2355,7 +2366,7 @@ export default function Home() {
 
                               <BrandIcon
 
-                                className="h-6 w-6"
+                                className="h-5 w-5"
 
                                 icon={brandIconFor(channel.sourceApp, channel.packageName)}
 
@@ -2369,13 +2380,13 @@ export default function Home() {
 
                           <span className="block min-w-0">
 
-                            <span className="block truncate text-[21px] font-black leading-6 text-white">
+                            <span className="block truncate text-[16px] font-black leading-5 text-white">
 
                               {channel.label}
 
                             </span>
 
-                            <span className="mt-1 block truncate text-[15px] font-semibold text-[var(--ink-muted)]">
+                            <span className="mt-0.5 block truncate text-[12px] font-semibold text-[var(--ink-muted)]">
 
                               {channel.enabled ? "Mesajları alıyor" : "Kapalı"}
 
@@ -2401,25 +2412,14 @@ export default function Home() {
 
 
 
-            <div className="grid gap-3 pt-3">
-              {channelUndo ? (
-                <button
-                  type="button"
-                  onClick={undoChannelBulkChange}
-                  className="channel-undo tap-target flex w-full items-center justify-between rounded-[16px] px-4 py-3 text-left text-[15px] font-black text-white transition active:scale-[0.99]"
-                >
-                  <span>{channelUndo.label}</span>
-                  <span className="text-[13px] text-white/70">Geri al</span>
-                </button>
-              ) : null}
-
+            <div className="grid gap-2.5 pt-2.5">
               <button
 
                 type="button"
 
                 onClick={() => void scanInstalledChannels()}
 
-                className="channel-add tap-target flex w-full items-center justify-between px-5 py-3 text-left text-[16px] font-bold leading-6 text-white transition active:scale-[0.99]"
+                className="channel-add tap-target flex w-full items-center justify-between px-4 py-2.5 text-left text-[14px] font-bold leading-5 text-white transition active:scale-[0.99]"
 
               >
 
@@ -2428,39 +2428,6 @@ export default function Home() {
                 <span className="text-[18px] leading-none">+</span>
 
               </button>
-
-
-
-              {isNative && !isNotificationAccessEnabled ? (
-
-                <button
-
-                  type="button"
-
-                  onClick={requestNotificationAccess}
-
-                  className="channel-permission tap-target px-5 py-4 text-left text-white transition active:scale-[0.99]"
-
-                >
-
-                  <span className="block text-[17px] font-black">Bildirim erişimini aç</span>
-                  <span className="mt-1 block text-[13px] font-semibold leading-5 text-white/70">
-                    Direkt Android izin ekranına götürür.
-                  </span>
-
-                </button>
-
-              ) : null}
-
-              {isNative && !isNotificationAccessEnabled ? (
-
-                <p className="px-1 text-[12px] leading-5 text-[var(--ink-muted)]">
-
-                  Mesajların panele düşmesi için gerekir. İşlem telefonun içinde kalır.
-
-                </p>
-
-              ) : null}
 
             </div>
 
@@ -2842,7 +2809,8 @@ export default function Home() {
               </div>
             )
           ) : visibleConversations.length === 0 ? (
-            <div className="flex min-h-[360px] flex-col items-center justify-center rounded-[18px] border border-white/8 bg-[#1A1C23] px-6 py-10 text-center">
+            <div className="space-y-3">
+              <div className="flex min-h-[300px] flex-col items-center justify-center rounded-[18px] border border-white/8 bg-[#1A1C23] px-6 py-9 text-center">
               <div className="flex h-[62px] w-[62px] items-center justify-center rounded-full bg-white/8 text-white">
                 <BrandIcon className="h-8 w-8" icon={siGooglemessages} label="MSG" />
               </div>
@@ -2850,6 +2818,20 @@ export default function Home() {
               <p className="mt-2 max-w-[260px] text-[14px] leading-5 text-[#9CA3AF]">
                 Yeni müşteri mesajları geldiğinde burada görünür.
               </p>
+              </div>
+
+              {!isNotificationAccessEnabled ? (
+                <button
+                  type="button"
+                  onClick={requestNotificationAccess}
+                  className="channel-permission tap-target w-full rounded-[16px] px-5 py-4 text-left text-white transition active:scale-[0.99]"
+                >
+                  <span className="block text-[17px] font-black">Bildirim erişimini aç</span>
+                  <span className="mt-1 block text-[13px] font-semibold leading-5 text-white/70">
+                    Mesajların düşmesi için Android izin ekranına direkt git.
+                  </span>
+                </button>
+              ) : null}
             </div>
           ) : (
             <div className="flex flex-col gap-3">
