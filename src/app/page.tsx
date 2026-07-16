@@ -2513,9 +2513,9 @@ export default function Home() {
 
                   {isTrialExpired
 
-                    ? "3 günlük deneme bitti. Devam etmek için kullanım süreni seç."
+                    ? "Mesaj panelini kullanmaya devam etmek için bir süre seç."
 
-                    : "Kullanım süreni seç ve Google Play üzerinden devam et."}
+                    : "Kullanım süreni Google Play üzerinden yönet."}
 
                 </p>
 
@@ -2761,9 +2761,9 @@ export default function Home() {
                 className="message-card flex min-h-[86px] w-full items-center justify-between px-4 py-3 text-left transition active:scale-[0.99]"
               >
                 <span>
-                  <span className="block text-[20px] font-black text-white">Kullanım süresi</span>
+                  <span className="block text-[20px] font-black text-white">Hesap durumu</span>
                   <span className="mt-1 block text-[15px] font-medium text-[#B9C4DC]">
-                    İlk 3 gün ücretsiz, sonra süre seçilir
+                    Kullanım ve abonelik bilgilerini yönet
                   </span>
                 </span>
                 <span className="rounded-full bg-white px-3 py-1 text-[12px] font-bold text-[#111318]">
