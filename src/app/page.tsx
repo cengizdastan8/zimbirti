@@ -2735,59 +2735,14 @@ export default function Home() {
 
                 <div className="relative z-20 flex-1 overflow-y-auto px-5 pb-8 pt-2">
           {visibleMessages.length === 0 ? (
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center gap-4 p-4 bg-[#1A1C23] rounded-[18px]">
-                <div className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full bg-[#25D366] text-white">
-                  <BrandIcon className="h-7 w-7" icon={siWhatsapp} label="WA" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between gap-3">
-                    <h2 className="truncate text-[16px] font-semibold text-white">Sarah Johnson</h2>
-                    <span className="text-[13px] text-[#9CA3AF]">9:41 AM</span>
-                  </div>
-                  <p className="mt-0.5 truncate text-[14px] text-[#9CA3AF]">Hi! I&apos;d like to know more about your services.</p>
-                </div>
-                <span className="grid h-6 min-w-[24px] place-items-center rounded-full bg-[#25D366] px-1.5 text-[12px] font-bold text-white">2</span>
+            <div className="flex min-h-[360px] flex-col items-center justify-center rounded-[18px] border border-white/8 bg-[#1A1C23] px-6 py-10 text-center">
+              <div className="flex h-[62px] w-[62px] items-center justify-center rounded-full bg-white/8 text-white">
+                <BrandIcon className="h-8 w-8" icon={siGooglemessages} label="MSG" />
               </div>
-              <div className="flex items-center gap-4 p-4 bg-[#1A1C23] rounded-[18px]">
-                <div className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#FEDA75] via-[#D62976] to-[#4F5BD5] text-white">
-                  <BrandIcon className="h-7 w-7" icon={siInstagram} label="IG" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between gap-3">
-                    <h2 className="truncate text-[16px] font-semibold text-white">Emily Roberts</h2>
-                    <span className="text-[13px] text-[#9CA3AF]">9:32 AM</span>
-                  </div>
-                  <p className="mt-0.5 truncate text-[14px] text-[#9CA3AF]">Do you have this item in size M?</p>
-                </div>
-                <span className="grid h-6 min-w-[24px] place-items-center rounded-full bg-[#FF2E55] px-1.5 text-[12px] font-bold text-white">1</span>
-              </div>
-              <div className="flex items-center gap-4 p-4 bg-[#1A1C23] rounded-[18px]">
-                <div className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full bg-[#1877F2] text-white">
-                  <BrandIcon className="h-7 w-7" icon={siFacebook} label="FB" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between gap-3">
-                    <h2 className="truncate text-[16px] font-semibold text-white">Michael Thompson</h2>
-                    <span className="text-[13px] text-[#9CA3AF]">9:18 AM</span>
-                  </div>
-                  <p className="mt-0.5 truncate text-[14px] text-[#9CA3AF]">Can you tell me the price of this package?</p>
-                </div>
-                <span className="grid h-6 min-w-[24px] place-items-center rounded-full bg-[#1877F2] px-1.5 text-[12px] font-bold text-white">3</span>
-              </div>
-              <div className="flex items-center gap-4 p-4 bg-[#1A1C23] rounded-[18px]">
-                <div className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full bg-[#25D366] text-white">
-                  <BrandIcon className="h-7 w-7" icon={siWhatsapp} label="WA" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between gap-3">
-                    <h2 className="truncate text-[16px] font-semibold text-white">David Lee</h2>
-                    <span className="text-[13px] text-[#9CA3AF]">Yesterday</span>
-                  </div>
-                  <p className="mt-0.5 truncate text-[14px] text-[#9CA3AF]">Thanks! That worked perfectly.</p>
-                </div>
-                <span className="grid h-6 min-w-[24px] place-items-center rounded-full bg-[#8E8E93] px-1.5 text-[12px] font-bold text-white">1</span>
-              </div>
+              <h2 className="mt-5 text-[18px] font-semibold text-white">Okunmamis mesaj yok</h2>
+              <p className="mt-2 max-w-[260px] text-[14px] leading-5 text-[#9CA3AF]">
+                Yeni musteri mesajlari geldiginde burada gorunur.
+              </p>
             </div>
           ) : (
             <div className="flex flex-col gap-3">
@@ -2797,15 +2752,14 @@ export default function Home() {
                 return (
                   <article
                     key={message.id}
-                    onClick={() => markAsRead(message.id)}
-                    className="relative flex cursor-pointer items-center gap-4 p-4 bg-[#1A1C23] rounded-[18px] transition active:scale-[0.98]"
+                    className="relative flex items-start gap-4 p-4 bg-[#1A1C23] rounded-[18px]"
                   >
                     <div className={`flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full text-white ${theme.accentClass}`}>
                        <BrandIcon className="h-7 w-7" icon={icon} label={theme.label} />
                     </div>
 
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-start justify-between gap-3">
                         <h2 className="truncate text-[16px] font-semibold text-white">
                           {message.senderName}
                         </h2>
@@ -2814,14 +2768,18 @@ export default function Home() {
                         </span>
                       </div>
 
-                      <div className="mt-0.5 flex items-center justify-between gap-4">
-                        <p className="truncate text-[14px] text-[#9CA3AF]">
+                      <div className="mt-1 flex items-end justify-between gap-3">
+                        <p className="line-clamp-2 min-w-0 text-[14px] leading-5 text-[#9CA3AF]">
                           {message.messageText}
                         </p>
 
-                        <div className={`flex h-[24px] min-w-[24px] shrink-0 items-center justify-center rounded-full px-1.5 text-[12px] font-bold text-white shadow-sm ${theme.accentClass}`}>
-                          1
-                        </div>
+                        <button
+                          type="button"
+                          onClick={() => markAsRead(message.id)}
+                          className="shrink-0 rounded-full bg-white px-3 py-1.5 text-[12px] font-bold text-[#111318] transition active:scale-95"
+                        >
+                          Okundu
+                        </button>
                       </div>
                     </div>
                   </article>
